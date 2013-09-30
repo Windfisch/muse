@@ -509,6 +509,7 @@ Part* Part::duplicate() const
 WavePart::WavePart(WaveTrack* t)
    : Part(t)
       {
+      setType(TICKS); // DELETETHIS, this might be unneccessary due to the XTicks changes, and below.
       }
 
 
@@ -547,7 +548,21 @@ iPart PartList::findPart(unsigned tick)
 
 iPart PartList::add(Part* part)
       {
-        // TODO FIXME FINDMICHJETZT this must be XTicks for accuracy!
+      // Added by T356. A part list containing wave parts should be sorted by
+      //  frames. WaveTrack::fetchData() relies on the sorting order, and
+      //  there was a bug that waveparts were sometimes muted because of
+      //  incorrect sorting order (by ticks).
+      // Also, when the tempo map is changed, every wavepart would have to be
+      //  re-added to the part list so that the proper sorting order (by ticks)
+      //  could be achieved.
+      // Note that in a med file, the tempo list is loaded AFTER all the tracks.
+      // There was a bug that all the wave parts' tick values were not correct,
+      // since they were computed BEFORE the tempo map was loaded.
+      
+      // FINDMICHJETZT  Xticks or Time_t here!
+      if(part->type() == Pos::FRAMES)
+        return insert(std::pair<const int, Part*> (part->frame(), part));
+      else
         return insert(std::pair<const int, Part*> (part->tick(), part));
       }
 

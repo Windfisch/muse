@@ -48,6 +48,7 @@ namespace MusECore
 
 		XTick operator+(const XTick& t2) const;
 		XTick operator-(const XTick& t2) const;
+		XTick operator-() const;
 		bool operator>=(const XTick& t2) const;
 		bool operator>(const XTick& t2) const;
 		bool operator<=(const XTick& t2) const;

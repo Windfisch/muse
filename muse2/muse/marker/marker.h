@@ -58,7 +58,7 @@ class Marker : public Pos {
 class MarkerList : public std::multimap<unsigned, Marker, std::less<unsigned> > {
    public:
       Marker* add(const Marker& m);
-      Marker* add(const QString& s, int t);
+      Marker* add(const QString& s, int t, bool lck);
       void write(int, Xml&) const;
       void remove(Marker*);
       };

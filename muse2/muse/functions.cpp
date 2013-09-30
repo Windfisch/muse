@@ -953,15 +953,15 @@ void paste_notes(int max_distance, bool always_new_part, bool never_new_part, co
 // if nothing is selected/relevant, this function returns NULL
 QMimeData* selected_events_to_mime(const set<const Part*>& parts, int range)
 {
-    unsigned start_tick = INT_MAX; //will be the tick of the first event or INT_MAX if no events are there
+    XTick start_tick = XTick::createInvalidXTick(); //will be the tick of the first event or invalid if no events are there
 
     for (set<const Part*>::iterator part=parts.begin(); part!=parts.end(); part++)
         for (ciEvent ev=(*part)->events().begin(); ev!=(*part)->events().end(); ev++)
             if (is_relevant(ev->second, *part, range))
-                if (ev->second.tick() < start_tick)
-                    start_tick=ev->second.tick();
+                if (ev->second.xtick() < start_tick)
+                    start_tick=ev->second.xtick();
 
-    if (start_tick == INT_MAX)
+    if (start_tick.invalid)
         return NULL;
 
     //---------------------------------------------------
@@ -983,7 +983,7 @@ QMimeData* selected_events_to_mime(const set<const Part*>& parts, int range)
         xml.tag(level++, "eventlist part_id=\"%d\"", (*part)->sn());
         for (ciEvent ev=(*part)->events().begin(); ev!=(*part)->events().end(); ev++)
             if (is_relevant(ev->second, *part, range))
-                ev->second.write(level, xml, -start_tick);
+                ev->second.write(level, xml, MusECore::Pos(-start_tick));
         xml.etag(--level, "eventlist");
     }
 
@@ -1349,6 +1349,12 @@ void schedule_resize_all_same_len_clone_parts(const Part* part, unsigned new_len
 		const Part* part_it=part;
 		do
 		{
+			if (part->lenType() == Pos::FRAMES)
+			{
+			  if (part_it->lenFrame()==old_len && !already_done.contains(part_it))
+				  operations.push_back(UndoOp(UndoOp::ModifyPartLengthFrames, part_it, part_it->lenFrame(), new_len, true, false)); // FIXME FINDMICH frames suck :(
+			}
+			else
 			if (part_it->lenTick()==old_len && !already_done.contains(part_it))
 			{
 				operations.push_back(UndoOp(UndoOp::ModifyPartLength, part_it, part_it->lenTick(), new_len, true, false));

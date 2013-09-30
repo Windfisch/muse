@@ -632,17 +632,17 @@ void Song::read(Xml& xml, bool isTemplate)
                               MusEGlobal::automation = xml.parseInt();
                         else if (tag == "cpos") {
                               int pos = xml.parseInt();
-                              Pos p(pos);
+                              Pos p = Pos(XTick(pos));
                               setPos(Song::CPOS, p, false, false, false);
                               }
                         else if (tag == "lpos") {
                               int pos = xml.parseInt();
-                              Pos p(pos);
+                              Pos p = Pos(XTick(pos));
                               setPos(Song::LPOS, p, false, false, false);
                               }
                         else if (tag == "rpos") {
                               int pos = xml.parseInt();
-                              Pos p(pos);
+                              Pos p = Pos(XTick(pos));
                               setPos(Song::RPOS, p, false, false, false);
                               }
                         else if (tag == "drummap")

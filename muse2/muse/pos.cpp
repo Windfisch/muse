@@ -44,6 +44,7 @@ namespace MusECore
 
 	Pos::Pos()
 	{
+		_type = TICKS;
 		_tick = XTick(0,0);
 		recalc_frames();
 		sn = -1;
@@ -51,6 +52,7 @@ namespace MusECore
 
 	Pos::Pos(const Pos& p)
 	{
+		_type = p._type;
 		sn = p.sn;
 		_tick = p._tick;
 		_frame = p._frame;
@@ -58,16 +60,9 @@ namespace MusECore
 
 	Pos::Pos(XTick t)
 	{
+		_type = TICKS;
 		_tick = t;
 		recalc_frames();
-	}
-
-	Pos::Pos(unsigned t) // TODO: use XTicks instead
-	{
-		_tick = XTick(t);
-		recalc_frames();
-		
-		sn = -1;
 	}
 
 	Pos::Pos(const QString& s)
@@ -75,6 +70,7 @@ namespace MusECore
 		int m, b, t;
 		sscanf(s.toLatin1(), "%04d.%02d.%03d", &m, &b, &t);
 		_tick = XTick(AL::sigmap.bar2tick(m, b, t));
+		_type = TICKS;
 		recalc_frames();
 		sn = -1;
 	}
@@ -82,6 +78,7 @@ namespace MusECore
 	Pos::Pos(int measure, int beat, int tick, float subtick)
 	{
 		_tick = XTick(AL::sigmap.bar2tick(measure, beat, tick), subtick);
+		_type = TICKS;
 		recalc_frames();
 		sn = -1;
 	}
@@ -106,6 +103,7 @@ namespace MusECore
 				time += f * 1.0 / 30.0;
 				break;
 		}
+		_type = TICKS;
 		setFrame(lrint(time * MusEGlobal::sampleRate));
 		recalc_frames();
 		sn = -1;
@@ -117,6 +115,30 @@ namespace MusECore
 		_frame = MusEGlobal::tempomap.tick2frame(_tick, _frame, &sn);
 	}
 
+	// ---------------------------------------------------------
+	// setType
+	// ---------------------------------------------------------
+
+	void Pos::setType(TType t)
+	{
+		if (t == _type)
+			return;
+		
+		if (t == FRAMES)
+			printf("DEBUG: warning: Pos::setType(FRAMES) called\n");
+		
+		if (_type == TICKS)
+		{
+			// convert from ticks to frames
+			_frame = MusEGlobal::tempomap.tick2frame(_tick, _frame, &sn);
+		}
+		else
+		{
+			// convert from frames to ticks
+			_tick = MusEGlobal::tempomap.frame2xtick(_frame, _tick, &sn);
+		}
+		_type = t;
+	}
 
 	// ---------------------------------------------------------
 	// operator+=
@@ -124,31 +146,19 @@ namespace MusECore
 
 	Pos& Pos::operator+=(Pos a)
 	{
-
-		//_tick += a.xtick(); // TODO implement operator+= and replace!
-		_tick = _tick + a.xtick();
-
+		switch (_type)
+		{
+			case FRAMES:
+				_frame += a.frame();
+				break;
+			
+			case TICKS:
+				//_tick += a.xtick(); // TODO implement operator+= and replace!
+				_tick = _tick + a.xtick();
+				break;
+		}
 		sn = -1;				// invalidate cached values
 		return *this;
-	}
-
-	// ---------------------------------------------------------
-	// operator+=
-	// ---------------------------------------------------------
-
-	Pos& Pos::operator+=(int a)
-	{
-		//_tick += a; // TODO implement operator+= and replace!
-		_tick = _tick + XTick(a);
-
-		sn = -1;				// invalidate cached values
-		return *this;
-	}
-
-	Pos operator+(Pos a, int b)
-	{
-		Pos c = a;
-		return c += b;
 	}
 
 	Pos operator+(Pos a, Pos b)
@@ -159,27 +169,42 @@ namespace MusECore
 
 	bool Pos::operator>=(const Pos& s) const
 	{
-		return _tick >= s.tick();
+		if (_type == FRAMES)
+			return _frame >= s.frame();
+		else
+			return _tick >= s.tick();
 	}
 
 	bool Pos::operator>(const Pos& s) const
 	{
-		return _tick > s.tick();
+		if (_type == FRAMES)
+			return _frame > s.frame();
+		else
+			return _tick > s.tick();
 	}
 
 	bool Pos::operator<(const Pos& s) const
 	{
-		return _tick < s.tick();
+		if (_type == FRAMES)
+			return _frame < s.frame();
+		else
+			return _tick < s.tick();
 	}
 
 	bool Pos::operator<=(const Pos& s) const
 	{
-		return _tick <= s.tick();
+		if (_type == FRAMES)
+			return _frame <= s.frame();
+		else
+			return _tick <= s.tick();
 	}
 
 	bool Pos::operator==(const Pos& s) const
 	{
-		return _tick == s.xtick();
+		if (_type == FRAMES)
+			return _frame == s.frame();
+		else
+			return _tick == s.xtick();
 	}
 
 	// ---------------------------------------------------------
@@ -188,6 +213,8 @@ namespace MusECore
 
 	unsigned Pos::tick() const
 	{
+		if (_type == FRAMES) // TODO should never happen
+			_tick = MusEGlobal::tempomap.frame2xtick(_frame, _tick, &sn);
 		return _tick.tick;
 	}
 
@@ -200,9 +227,10 @@ namespace MusECore
 	// frame
 	// ---------------------------------------------------------
 
-	unsigned Pos::frame() const
+	audioframe_t Pos::frame() const
 	{
-		_frame = MusEGlobal::tempomap.tick2frame(_tick, _frame, &sn);
+		if (_type == TICKS) // TODO should always happen
+			_frame = MusEGlobal::tempomap.tick2frame(_tick, _frame, &sn);
 		return _frame;
 	}
 
@@ -219,6 +247,8 @@ namespace MusECore
 	{
 		_tick = pos;
 		sn = -1;
+		if (_type == FRAMES)
+			_frame = MusEGlobal::tempomap.tick2frame(pos, &sn);
 		
 		recalc_frames();
 	}
@@ -227,11 +257,12 @@ namespace MusECore
 	// setFrame
 	// ---------------------------------------------------------
 
-	void Pos::setFrame(unsigned pos)
+	void Pos::setFrame(audioframe_t pos)
 	{
 		_frame = pos;
 		sn = -1;
-		_tick = MusEGlobal::tempomap.frame2xtick(pos, &sn);
+		if (_type == TICKS)
+			_tick = MusEGlobal::tempomap.frame2xtick(pos, &sn);
 	}
 
 	// ---------------------------------------------------------
@@ -241,7 +272,17 @@ namespace MusECore
 	void Pos::write(int level, Xml& xml, const char* name) const
 	{
 		xml.nput(level++, "<%s ", name);
-		xml.nput("tick=\"%d\" subtick=\"%f\"", _tick.tick, _tick.subtick);
+
+		switch (_type)
+		{
+			case TICKS:
+				xml.nput("tick=\"%d\" subtick=\"%f\"", _tick.tick, _tick.subtick);
+				break;
+			
+			case FRAMES:
+				xml.nput("frame=\"%d\"", _frame);
+				break;
+		}
 		xml.put(" />", name);
 	}
 
@@ -270,14 +311,18 @@ namespace MusECore
 					if (tag == "tick")
 					{
 						_tick = XTick(xml.s2().toInt());
+						_type = TICKS;
 					}
 					else if (tag == "subtick")
 					{
-						_tick.subtick = xml.s2().toDouble();
+						if (_type != TICKS)
+							printf("ERROR: Pos::read got subtick tag, but is not in TICKS mode!\n");
+						else
+							_tick.subtick = xml.s2().toDouble();
 					}
-					else if (tag == "sample" || tag == "frame") // obsolete
+					else if (tag == "sample" || tag == "frame")
 					{
-						printf("DEBUG: Pos::read wants type=FRAMES, but this is denied.\n");
+						_type = FRAMES;
 						setFrame(xml.s2().toInt());
 					}
 					else
@@ -302,7 +347,7 @@ namespace MusECore
 		_lenTick = XTick(0);
 		_lenFrame = 0;
 		sn = -1;
-		_lenType = Pos::TICKS;
+		_lenType = type();
 	}
 
 	PosLen::PosLen(const PosLen& p) : Pos(p)
@@ -335,7 +380,17 @@ namespace MusECore
 
 	void Pos::dump(int /* n */ ) const
 	{
-		printf("Pos(sn=%d, ticks=%d + %f)", sn, _tick.tick, _tick.subtick);
+		printf("Pos(%s, sn=%d, ", type() == FRAMES ? "Frames" : "Ticks", sn);
+		switch (type())
+		{
+			case FRAMES:
+				printf("samples=%d)", _frame);
+				break;
+			
+			case TICKS:
+				printf("ticks=%d + %f)", _tick.tick, _tick.subtick);
+				break;
+		}
 	}
 
 	// ---------------------------------------------------------
@@ -345,12 +400,20 @@ namespace MusECore
 	void PosLen::write(int level, Xml& xml, const char* name) const
 	{
 		xml.nput(level++, "<%s ", name);
-		
-		if (_lenType==Pos::TICKS)
-			xml.nput("tick=\"%d\" subtick=\"%f\" len=\"%d\" lensubtick=\"%f\"", xtick().tick, xtick().subtick, _lenTick.tick, _lenTick.subtick);
-		else
-			xml.nput("tick=\"%d\" subtick=\"%f\" lenframes=\"%d\"", xtick().tick, xtick().subtick, _lenFrame);
-		
+
+		switch (type())
+		{
+			case TICKS:
+				if (_lenType==Pos::TICKS)
+					xml.nput("tick=\"%d\" subtick=\"%f\" len=\"%d\" lensubtick=\"%f\"", xtick().tick, xtick().subtick, _lenTick.tick, _lenTick.subtick);
+				else
+					xml.nput("tick=\"%d\" subtick=\"%f\" lenframes=\"%d\"", xtick().tick, xtick().subtick, _lenFrame);
+				break;
+			
+			case FRAMES:
+				xml.nput("sample=\"%d\" len=\"%d\"", frame(), _lenFrame);
+				break;
+		}
 		xml.put(" />", name);
 	}
 
@@ -360,13 +423,6 @@ namespace MusECore
 
 	void PosLen::read(Xml& xml, const char* name)
 	{
-		/* Unfortunately, old versions of MusE have used the "len=..." attribute,
-		   regardless whether type was TICKS or FRAMES. Thus, we must use this
-		   flag to check whether "len" means "tick length" as today, or actually
-		   means "lenframes", but was stored using an old MusE version. */
-		bool in_deprecated_sample_mode = false;
-		
-		setLenType(TICKS);
 		sn = -1;
 		for (;;)
 		{
@@ -385,6 +441,7 @@ namespace MusECore
 				case Xml::Attribut:
 					if (tag == "tick")
 					{
+						setType(TICKS);
 						setTick(xml.s2().toInt());
 					}
 					if (tag == "subtick")
@@ -395,26 +452,25 @@ namespace MusECore
 					}
 					else if (tag == "sample")
 					{
-						printf("PosLen::read wants FRAMES but this is denied.\n");
-						in_deprecated_sample_mode = true;
+						setType(FRAMES);
+						setLenType(FRAMES);
 						setFrame(xml.s2().toInt());
 					}
-					else if ((tag == "len") && !in_deprecated_sample_mode)
+					else if ((tag == "len") && type()==FRAMES)
+					{
+						setLenFrame(xml.s2().toInt());
+					}
+					else if ((tag == "len") && type()==TICKS)
 					{
 						_lenType=Pos::TICKS;
 						setLenTick(xml.s2().toInt());
 					}
 					else if (tag == "lensubtick")
 					{
-						if (in_deprecated_sample_mode)
-							printf("THIS CANNOT HAPPEN in PosLen::read: lensubtick was read, but in_deprecated_sample_mode==true!\n");
-						else
-						{
-							_lenTick.subtick = xml.s2().toDouble();
-							setLenTick(_lenTick); // this is necessary!
-						}
+						_lenTick.subtick = xml.s2().toDouble();
+						setLenTick(_lenTick); // this is necessary!
 					}
-					else if ((tag == "lenframes") || ((tag == "len") && in_deprecated_sample_mode))
+					else if (tag == "lenframes") 
 					{
 						_lenType=Pos::FRAMES;
 						setLenFrame(xml.s2().toInt());
@@ -452,7 +508,7 @@ namespace MusECore
 	// setLenFrame
 	// ---------------------------------------------------------
 
-	void PosLen::setLenFrame(unsigned len)
+	void PosLen::setLenFrame(audioframe_t len)
 	{
 		_lenFrame = len;
 		sn = -1;
@@ -479,7 +535,7 @@ namespace MusECore
 	// lenFrame
 	// ---------------------------------------------------------
 
-	unsigned PosLen::lenFrame() const
+	audioframe_t PosLen::lenFrame() const
 	{
 		if (lenType() == TICKS)
 			_lenFrame = MusEGlobal::tempomap.deltaTick2frame(xtick(), xtick() + _lenTick, &sn);
@@ -526,7 +582,15 @@ namespace MusECore
 
 	void PosLen::setPos(const Pos& pos)
 	{
-		setTick(pos.xtick());
+		switch (pos.type())
+		{
+			case FRAMES:
+				setFrame(pos.frame());
+				break;
+			case TICKS:
+				setTick(pos.xtick());
+				break;
+		}
 	}
 
 	// ---------------------------------------------------------

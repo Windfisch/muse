@@ -426,7 +426,7 @@ void buildMidiEventList(EventList* del, const MPEventList& el, MidiTrack* track,
                               case ME_META_TEXT_6_MARKER:   // Marker
                                     {
                                     unsigned ltick  = CALC_TICK(tick);
-                                    MusEGlobal::song->addMarker(QString((const char*)(data)), ltick);
+                                    MusEGlobal::song->addMarker(QString((const char*)(data)), ltick, false);
                                     }
                                     break;
                               case ME_META_TEXT_5_LYRIC:   // Lyrics

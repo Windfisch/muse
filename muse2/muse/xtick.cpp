@@ -55,19 +55,35 @@ namespace MusECore
 			tmp.subtick -= 1.0;
 			tmp.tick += 1;
 		}
-		return tmp;
-	}
-
-	XTick XTick::operator-(const XTick& t2) const
-	{
-		XTick tmp(this->tick - t2.tick, this->subtick - t2.subtick);
-		if (tmp.subtick < 0)
+		else if (tmp.subtick < 0)
 		{
 			tmp.subtick += 1.0;
 			tmp.tick -= 1;
 		}
 		return tmp;
 	}
+
+	XTick XTick::operator-(const XTick& t2) const
+	{
+		XTick tmp(this->tick - t2.tick, this->subtick - t2.subtick);
+		if (tmp.subtick >= 1.0)
+		{
+			tmp.subtick -= 1.0;
+			tmp.tick += 1;
+		}
+		else if (tmp.subtick < 0)
+		{
+			tmp.subtick += 1.0;
+			tmp.tick -= 1;
+		}
+		return tmp;
+	}
+	
+	XTick XTick::operator-() const
+	{
+		return XTick(0,0.0)-*this;
+	}
+
 
 	bool XTick::operator>(const XTick& t2) const
 	{

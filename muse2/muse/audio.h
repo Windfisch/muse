@@ -54,7 +54,8 @@ class SynthI;
 class Track;
 class Undo;
 
-typedef unsigned audioframe_t;
+#include "audioframe_t.h"
+
 //---------------------------------------------------------
 //   AudioMsgId
 //    this are the messages send from the GUI thread to

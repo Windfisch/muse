@@ -1513,9 +1513,9 @@ void Song::setLen(unsigned l)
 //   addMarker
 //---------------------------------------------------------
 
-Marker* Song::addMarker(const QString& s, int t)
+Marker* Song::addMarker(const QString& s, int t, bool lck)
       {
-      Marker* marker = _markerList->add(s, t);
+      Marker* marker = _markerList->add(s, t, lck);
       emit markerChanged(MARKER_ADD);
       return marker;
       }
@@ -1561,6 +1561,12 @@ Marker* Song::setMarkerTick(Marker* m, int t)
       return m;
       }
 
+Marker* Song::setMarkerLock(Marker* m, bool f)
+      {
+      m->setType(f ? Pos::FRAMES : Pos::TICKS);
+      emit markerChanged(MARKER_LOCK);
+      return m;
+      }
 
 
 //---------------------------------------------------------
@@ -2025,7 +2031,7 @@ void Song::seqSignal(int fd)
                         break;
                   case 'G':
                         clearRecAutomation(true);
-                        setPos(0, MusEGlobal::audio->tickPos(), true, false, true);
+                        setPos(0, Pos(XTick(MusEGlobal::audio->tickPos())), true, false, true);
                         break;
                   case 'S':   // shutdown audio
                         MusEGlobal::muse->seqStop();

@@ -38,7 +38,8 @@ namespace MusECore {
 EventBase::EventBase(EventType t)
       {
       _type     = t;
-      PosLen::setLenType( t==Wave ? FRAMES : TICKS ); // FIXME TODO FLO FINDMICHJETZT
+      Pos::setType(TICKS); // wave parts are also in TICKS now.
+      PosLen::setLenType( t==Wave ? FRAMES : TICKS );
       refCount  = 0;
       parental_part=NULL;
       _selected = false;

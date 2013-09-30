@@ -43,6 +43,7 @@
 #include "app.h"
 #include "audio.h"
 
+
 namespace MusEGui {
 
 //---------------------------------------------------------
@@ -618,7 +619,7 @@ void Transport::setPos(int idx, unsigned v, bool)
 
 void Transport::cposChanged(int tick)
       {
-      MusEGlobal::song->setPos(0, tick);
+      MusEGlobal::song->setPos(0, MusECore::Pos(MusECore::XTick(tick)));
       }
 
 //---------------------------------------------------------
@@ -627,7 +628,7 @@ void Transport::cposChanged(int tick)
 
 void Transport::cposChanged(const MusECore::Pos& pos)
       {
-      MusEGlobal::song->setPos(0, pos.tick());
+      MusEGlobal::song->setPos(0, MusECore::Pos(pos.xtick()));
       }
 
 //---------------------------------------------------------
@@ -636,7 +637,7 @@ void Transport::cposChanged(const MusECore::Pos& pos)
 
 void Transport::lposChanged(const MusECore::Pos& pos)
       {
-      MusEGlobal::song->setPos(1, pos.tick());
+      MusEGlobal::song->setPos(1, MusECore::Pos(pos.xtick()));
       }
 
 //---------------------------------------------------------
@@ -645,7 +646,7 @@ void Transport::lposChanged(const MusECore::Pos& pos)
 
 void Transport::rposChanged(const MusECore::Pos& pos)
       {
-      MusEGlobal::song->setPos(2, pos.tick());
+      MusEGlobal::song->setPos(2, MusECore::Pos(pos.xtick()));
       }
 
 //---------------------------------------------------------

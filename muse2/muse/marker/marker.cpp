@@ -31,9 +31,10 @@ Marker* MarkerList::add(const Marker& marker)
       return &i->second;
       }
 
-Marker* MarkerList::add(const QString& s, int t)
+Marker* MarkerList::add(const QString& s, int t, bool lck)
       {
       Marker marker(s);
+      marker.setType(lck ? Pos::FRAMES : Pos::TICKS);
       marker.setTick(t);
       iMarker i = insert(std::pair<const int, Marker> (t, marker));
       return &i->second;
@@ -59,7 +60,7 @@ void Marker::read(Xml& xml)
                         if (tag == "tick")
                               setTick(xml.s2().toInt());
                         else if (tag == "lock")
-                              printf("WARNING: Marker was set to be locked to the current frame. Ignoring this, as it's no more supported!\n");
+                              setType(xml.s2().toInt() ? FRAMES:TICKS);
                         else if (tag == "name")
                         {
                               _name = xml.s2();
@@ -83,7 +84,7 @@ void MarkerList::write(int level, Xml& xml) const
       for (ciMarker i = begin(); i != end(); ++i) {
             const Marker& m = i->second;
             xml.put(level, "<marker tick=\"%d\" lock=\"%d\" name=\"%s\" />",
-               m.tick(), false, Xml::xmlString(m.name()).toLatin1().constData());
+               m.tick(), m.type()==Pos::FRAMES, Xml::xmlString(m.name()).toLatin1().constData());
             }
       }
 

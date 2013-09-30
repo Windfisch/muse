@@ -26,6 +26,7 @@
 #define __POS_H__
 
 #include "xtick.h"
+#include "audioframe_t.h"
 
 class QString;
 
@@ -48,11 +49,12 @@ namespace MusECore
 		enum TType { TICKS, FRAMES };
 
 	  private:
+		TType _type;
 		mutable int sn;
 		
 		mutable XTick _tick;
 
-		mutable unsigned _frame;
+		mutable audioframe_t _frame;
 		void recalc_frames();
 
 	  public:
@@ -60,7 +62,6 @@ namespace MusECore
 		Pos(const Pos&);
 		Pos(int measure, int beat, int tick, float subtick = 0.0);
 		Pos(int min, int sec, int frame, int subframe);
-		Pos(unsigned);
 		Pos(XTick t);
 		Pos(const QString&); // expects a string like "mmmm.bb.ttt", where m,b,t means measure(range 1..inf), beat(range usually 1..4), tick(range 0..config.division)
 		                     // only use for PosEdits! This ctor cannot handle subticks!
@@ -73,8 +74,13 @@ namespace MusECore
 			sn = -1;
 		}
 
+		TType type() const
+		{
+			return _type;
+		}
+		void setType(TType t);
+
 		Pos& operator+=(Pos a);
-		Pos& operator+=(int a);
 
 		bool operator>=(const Pos& s) const;
 		bool operator>(const Pos& s) const;
@@ -83,14 +89,13 @@ namespace MusECore
 		bool operator==(const Pos& s) const;
 
 		friend Pos operator+(Pos a, Pos b);
-		friend Pos operator+(Pos a, int b);
 
 		XTick xtick() const;
 		unsigned tick() const;
-		unsigned frame() const;
+		audioframe_t frame() const;
 		void setTick(unsigned);
 		void setTick(XTick);
-		void setFrame(unsigned);
+		void setFrame(audioframe_t);
 
 		void write(int level, Xml&, const char*) const;
 		void read(Xml& xml, const char*);
@@ -109,7 +114,7 @@ namespace MusECore
 	class PosLen : public Pos
 	{
 		mutable XTick _lenTick;
-		mutable unsigned _lenFrame;
+		mutable audioframe_t _lenFrame;
 		mutable int sn;
 		TType _lenType;
 
@@ -124,14 +129,14 @@ namespace MusECore
 		void read(Xml& xml, const char*);
 		void setLenTick(unsigned);
 		void setLenTick(XTick);
-		void setLenFrame(unsigned);
+		void setLenFrame(audioframe_t);
 		unsigned lenTick() const;
 		XTick lenXTick() const;
-		unsigned lenFrame() const;
+		audioframe_t lenFrame() const;
 		Pos end() const;
 		unsigned endTick() const  { return end().tick();  }
 		XTick endXTick() const  { return end().xtick();  }
-		unsigned endFrame() const { return end().frame(); }
+		audioframe_t endFrame() const { return end().frame(); }
 		void setPos(const Pos&);
 	};
 
