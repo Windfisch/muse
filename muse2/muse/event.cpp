@@ -202,19 +202,31 @@ void Event::readAudio(MusECore::WavePart* part, unsigned int offset, float** bpp
       {
         ev->readAudio(part, offset, bpp, channels, nn, fromXTick, toXTick, doSeek, overwrite);
       }
+
+
+
+
+void Event::setPosType(Pos::TType t) { ev->setPosType(t); }
+Pos::TType Event::posType() const    { return ev->posType(); }
+void Event::setLenType(Pos::TType t) { ev->setLenType(t); }
+Pos::TType Event::lenType() const    { return ev->lenType(); }
+
+
+void Event::setTick(XTick xt)           { ev->setTick(xt); }
 void Event::setTick(unsigned val)       { ev->setTick(val); }
 unsigned Event::tick() const            { return ev->tick(); }
-XTick Event::xtick() const            { return ev->xtick(); }
+XTick Event::xtick() const              { return ev->xtick(); }
 unsigned Event::frame() const           { return ev->frame(); }
 void Event::setFrame(unsigned val)      { ev->setFrame(val); }
+void Event::setLenTick(XTick xt)        { ev->setLenTick(xt); }
 void Event::setLenTick(unsigned val)    { ev->setLenTick(val); }
 void Event::setLenFrame(unsigned val)   { ev->setLenFrame(val); }
 unsigned Event::lenTick() const         { return ev->lenTick(); }
-XTick Event::lenXTick() const         { return ev->lenXTick(); }
+XTick Event::lenXTick() const           { return ev->lenXTick(); }
 unsigned Event::lenFrame() const        { return ev->lenFrame(); }
 Pos Event::end() const                  { return ev->end(); }
 unsigned Event::endTick() const         { return ev->end().tick(); }
-XTick Event::endXTick() const         { return ev->end().xtick(); }
+XTick Event::endXTick() const           { return ev->end().xtick(); }
 unsigned Event::endFrame() const        { return ev->end().frame(); }
 void Event::setPos(const Pos& p)        { ev->setPos(p); }
 

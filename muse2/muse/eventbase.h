@@ -54,6 +54,11 @@ class EventBase : public PosLen {
       int getRefCount() const    { return refCount; }
       EventType type() const     { return _type;  }
       void setType(EventType t)  { _type = t;  }
+      
+      void setPosType(Pos::TType t) { Pos::setType(t); }
+      Pos::TType posType() { return Pos::type(); }
+      // setLenType and lenType() are inherited
+      
       bool selected() const      { return _selected; }
       void setSelected(bool val) { _selected = val; }
 

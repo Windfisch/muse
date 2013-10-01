@@ -52,7 +52,7 @@ struct UndoOp {
             AddTempo, DeleteTempo,
             AddSig,   DeleteSig,
             AddKey,   DeleteKey,
-            ModifyTrackName, ModifyTrackChannel,
+            ModifyTrackName, ModifyTrackChannel, LockTrack,
             SwapTrack,
             ModifyClip,
             ModifyMarker,
@@ -124,6 +124,7 @@ struct UndoOp {
       UndoOp(UndoType type, Marker* copyMarker, Marker* realMarker);
       UndoOp(UndoType type, const Track* track, const char* old_name, const char* new_name);
       UndoOp(UndoType type, const Track* track, int old_chan, int new_chan);
+	  UndoOp(UndoType type, const Track* track, bool old_flag, bool new_flag);
 };
 
 class Undo : public std::list<UndoOp> {

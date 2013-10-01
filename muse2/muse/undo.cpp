@@ -58,7 +58,7 @@ const char* UndoOp::typeName()
             "AddTempo", "DeleteTempo",
             "AddSig", "DeleteSig",
             "AddKey", "DeleteKey",
-            "ModifyTrackName", "ModifyTrackChannel",
+            "ModifyTrackName", "ModifyTrackChannel", "LockTrack",
             "SwapTrack", 
             "ModifyClip", "ModifyMarker",
             "ModifySongLen", "DoNothing"
@@ -334,6 +334,39 @@ void prepareOperationGroup(Undo& group)
 		iUndoOp op_=op;
 		op_++;
 		
+		if (op->type==UndoOp::LockTrack)
+		{
+			if (op->selected!=op->selected_old)
+			{
+				Pos::TType postype = op->selected ? Pos::FRAMES : Pos::TICKS;
+				
+				// Declone all parts on the track, and set the parts' and their events' modes to FRAMES/TICKS.
+				
+				for (ciPart part_it = op->track->cparts()->begin(); part_it != op->track->cparts()->end(); part_it++)
+				{
+					const Part* p = part_it->second;
+					
+					Part* newp = p->duplicateEmpty();
+					newp->setType(postype);
+
+					for (MusECore::ciEvent ev = p->events().begin(); ev != p->events().end(); ++ev)
+					{
+						Event nev = ev->second.clone();
+						nev.setPosType(postype);
+						
+						if (postype==Pos::FRAMES)
+							nev.setFrame(MusEGlobal::tempomap.tick2frame(p->xtick() + ev->second.xtick()) - newp->frame());
+						else
+							nev.setTick(MusEGlobal::tempomap.frame2xtick(p->frame() + ev->second.frame()) - newp->xtick());
+						
+						newp->addEvent(nev);
+					}
+					
+					group.insert(op, UndoOp(UndoOp::DeletePart, p)); // insert before the current op
+					group.insert(op_, UndoOp(UndoOp::AddPart, newp)); // insert after the current op
+				}
+			}
+		}
 		if (op->type==UndoOp::DeleteTrack)
 		{
 			if (deleted_tracks.contains(op->track))
@@ -458,6 +491,9 @@ void Song::revertOperationGroup2(Undo& operations)
 // uncomment if needed            Track* editable_property_track = const_cast<Track*>(i->_propertyTrack);
             Part* editable_part = const_cast<Part*>(i->part);
             switch(i->type) {
+                  case UndoOp::LockTrack:
+                        editable_track->setLocked(i->selected_old);
+                        break;
                   case UndoOp::AddTrack:
                         removeTrack2(editable_track);
                         updateFlags |= SC_TRACK_REMOVED;
@@ -581,6 +617,9 @@ void Song::executeOperationGroup2(Undo& operations)
 // uncomment if needed            Track* editable_property_track = const_cast<Track*>(i->_propertyTrack);
             Part* editable_part = const_cast<Part*>(i->part);
             switch(i->type) {
+                  case UndoOp::LockTrack:
+                        editable_track->setLocked(i->selected);
+                        break;
                   case UndoOp::AddTrack:
                         insertTrack2(editable_track, i->trackno);
                         chainTrackParts(editable_track);
@@ -852,6 +891,17 @@ UndoOp::UndoOp(UndoOp::UndoType type_, const Track* track_, int old_chan, int ne
   _propertyTrack = track_;
   _oldPropValue = old_chan;
   _newPropValue = new_chan;
+}
+
+UndoOp::UndoOp(UndoOp::UndoType type_, const Track* track_, bool old_flag, bool new_flag)
+{
+  assert(type_==LockTrack);
+  assert(track_);
+  
+  type = type_;
+  track = track_;
+  selected = new_flag;
+  selected_old = old_flag;
 }
 
 void Song::undoOp(UndoOp::UndoType type, const char* changedFile, const char* changeData, int startframe, int endframe)

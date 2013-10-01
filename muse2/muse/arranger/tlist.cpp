@@ -376,8 +376,7 @@ void TList::paint(const QRect& r)
                                     drawCenteredPixmap(p, checkSquareIcon, r);
                               break;
                         case COL_TIMELOCK:
-                              if (track->isMidiTrack()
-                                 && track->locked()) {
+                              if (track->locked()) {
                                     drawCenteredPixmap(p, lockIcon, r);
                                     }
                               break;
@@ -2025,7 +2024,7 @@ void TList::mousePressEvent(QMouseEvent* ev)
 
             case COL_TIMELOCK:
                   mode = START_DRAG;
-                  t->setLocked(!t->locked());
+                  MusEGlobal::song->applyOperation(MusECore::UndoOp(MusECore::UndoOp::LockTrack, t, t->locked(), !t->locked()));
                   break;
 
             case COL_OCHANNEL:

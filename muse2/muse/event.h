@@ -111,12 +111,19 @@ class Event { // TODO FINDMICH remove this layer around *EventBase!
       AudioStream::stretch_mode_t stretchMode() const;
       const AudioStream* getAudioStream() const;
       
+      void setPosType(Pos::TType t);
+      Pos::TType posType() const;
+      void setLenType(Pos::TType t);
+      Pos::TType lenType() const;
+      
       void setTick(unsigned val);
+      void setTick(XTick);
       unsigned tick() const;
       XTick xtick() const;
       unsigned frame() const;
       void setFrame(unsigned val);
       void setLenTick(unsigned val);
+      void setLenTick(XTick);
       void setLenFrame(unsigned val);
       unsigned lenTick() const;
       XTick lenXTick() const;
