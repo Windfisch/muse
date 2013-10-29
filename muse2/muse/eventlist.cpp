@@ -35,8 +35,8 @@ namespace MusECore {
 
 iEvent EventList::add(Event& event)
       {
-      // Changed by Tim. An event list containing wave events should be sorted by
-      //  frames. WaveTrack::fetchData() relies on the sorting order, and
+      // Order Events by FRAMES or TICKS, depending on their Pos type
+      // WaveTrack::fetchData() relies on the sorting order, and
       //  there was a bug that waveparts were sometimes muted because of
       //  incorrect sorting order (by ticks).
       // Also, when the tempo map is changed, every wave event would have to be
@@ -46,7 +46,7 @@ iEvent EventList::add(Event& event)
       // There was a bug that all the wave events' tick values were not correct,
       // since they were computed BEFORE the tempo map was loaded.
       
-      if(event.type() == Wave)
+      if(event.posType() == Pos::FRAMES)
         return insert(std::pair<const unsigned, Event> (event.frame(), event));          
 
       unsigned key = event.tick();
@@ -65,43 +65,12 @@ iEvent EventList::add(Event& event)
       }
 
 //---------------------------------------------------------
-//   move
-//---------------------------------------------------------
-
-void EventList::move(Event& event, unsigned tick)
-      {
-      iEvent i = find(event);
-      erase(i);
-      
-      if(event.type() == Wave)
-      {
-        insert(std::pair<const unsigned, Event> (MusEGlobal::tempomap.tick2frame(tick), event));  
-        return;
-      }
-      
-      if(event.type() == Note)      // Place notes after controllers.
-      {
-        iEvent i = upper_bound(tick);
-        insert(i, std::pair<const unsigned, Event> (tick, event));   
-        return;
-      }
-      else
-      {
-        iEvent i = lower_bound(tick);
-        while(i != end() && i->first == tick && i->second.type() != Note)
-          ++i;
-        insert(i, std::pair<const unsigned, Event> (tick, event));   
-        return;
-      }
-      }
-
-//---------------------------------------------------------
 //   find
 //---------------------------------------------------------
 
 iEvent EventList::find(const Event& event)
 {
-      std::pair<iEvent,iEvent> range = equal_range(event.type() == Wave ? event.frame() : event.tick());
+      std::pair<iEvent,iEvent> range = equal_range(event.posType() == Pos::FRAMES ? event.frame() : event.tick());
 
       for (iEvent i = range.first; i != range.second; ++i) {
             if (i->second == event)
@@ -112,7 +81,7 @@ iEvent EventList::find(const Event& event)
 
 ciEvent EventList::find(const Event& event) const
       {
-      EventRange range = equal_range(event.type() == Wave ? event.frame() : event.tick());
+      EventRange range = equal_range(event.posType() == Pos::FRAMES ? event.frame() : event.tick());
 
       
       for (ciEvent i = range.first; i != range.second; ++i) {
@@ -124,7 +93,7 @@ ciEvent EventList::find(const Event& event) const
 
 iEvent EventList::findSimilar(const Event& event)
 {
-      std::pair<iEvent,iEvent> range = equal_range(event.type() == Wave ? event.frame() : event.tick());
+      std::pair<iEvent,iEvent> range = equal_range(event.posType() == Pos::FRAMES ? event.frame() : event.tick());
 
       for (iEvent i = range.first; i != range.second; ++i) {
             if (i->second.isSimilarTo(event))
@@ -135,7 +104,7 @@ iEvent EventList::findSimilar(const Event& event)
 
 ciEvent EventList::findSimilar(const Event& event) const
       {
-      EventRange range = equal_range(event.type() == Wave ? event.frame() : event.tick());
+      EventRange range = equal_range(event.posType() == Pos::FRAMES ? event.frame() : event.tick());
 
       
       for (ciEvent i = range.first; i != range.second; ++i) {
