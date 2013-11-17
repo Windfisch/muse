@@ -37,7 +37,7 @@ class Part;
 //   EventBase
 //---------------------------------------------------------
 
-class EventBase : public PosLen {
+class EventBase {
       EventType _type;
 
    protected:
@@ -45,25 +45,52 @@ class EventBase : public PosLen {
       bool _selected;
       Part* parental_part;
 
+      Pos::TType _posType;
+      Pos::TType _lenType;
+
+      XTick _tick;
+      audioframe_t _frame;
+      XTick _lenTick;
+      audioframe_t _lenFrame;
+
    public:
       EventBase(EventType t);
       EventBase(const EventBase& ev);
 
       virtual ~EventBase() {}
+      
+      bool operator==(const EventBase&) const;
 
       int getRefCount() const    { return refCount; }
       EventType type() const     { return _type;  }
       void setType(EventType t)  { _type = t;  }
       
-      void setPosType(Pos::TType t) { Pos::setType(t); }
-      Pos::TType posType() { return Pos::type(); }
-      // setLenType and lenType() are inherited
+      void setPosType(Pos::TType t);
+      Pos::TType posType() { return _posType; }
+      void setLenType(Pos::TType t);
+      Pos::TType lenType() { return _lenType; }
       
       bool selected() const      { return _selected; }
       void setSelected(bool val) { _selected = val; }
 
-      void move(int offset);
-      
+      void move(int offset); // FIXME DEPRECATED!
+      XTick xtick() const;
+      unsigned tick() const;
+      audioframe_t frame() const;
+      void setTick(unsigned);
+      void setTick(XTick);
+      void setFrame(audioframe_t);
+      void setLenTick(unsigned);
+      void setLenTick(XTick);
+      void setLenFrame(audioframe_t);
+      unsigned lenTick() const;
+      XTick lenXTick() const;
+      audioframe_t lenFrame() const;
+      unsigned endTick() const;
+      XTick endXTick() const;
+      audioframe_t endFrame() const;
+
+
       virtual bool isSimilarTo(const EventBase& other) const = 0;
 
       virtual void read(Xml&) = 0;

@@ -26,6 +26,7 @@
 #include "xml.h"
 #include "mpevent.h"
 #include "midictrl.h"
+#include "assert.h"
 
 namespace MusECore {
 
@@ -47,7 +48,7 @@ bool MidiEventBase::isSimilarTo(const EventBase& other_) const
 	if (other==NULL) // dynamic cast hsa failed: "other_" is not of type MidiEventBase.
 		return false;
 	
-	if ((a==other->a && b==other->b && c==other->c && edata.dataLen==other->edata.dataLen && this->PosLen::operator==(*other)) == false)
+	if ((a==other->a && b==other->b && c==other->c && edata.dataLen==other->edata.dataLen && this->EventBase::operator==(*other)) == false)
 		return false;
 	
 	if (edata.dataLen > 0)
@@ -105,10 +106,23 @@ void MidiEventBase::dump(int n) const
 
 void MidiEventBase::write(int level, Xml& xml, const Pos& offset, bool /*forcePath*/) const
       {
-      xml.nput(level++, "<event tick=\"%d\"", tick() + offset.tick());
+      xml.nput(level++, "<event");
+      
+      if (_posType == Pos::TICKS)
+      {
+              XTick tmp = xtick() + offset.xtick();
+              xml.nput(" tick=\"%d\" subtick=\"%f\"", tmp.tick, tmp.subtick);
+      }
+      else
+              xml.nput(" framepos=\"%d\"", frame() + offset.frame());
+
       switch (type()) {
             case Note:
-                  xml.nput(" len=\"%d\"", lenTick());
+                  if (_lenType == Pos::TICKS)
+                          xml.nput(" lenTick=\"%d\"", lenTick());
+                  else
+                          xml.nput(" lenFrame=\"%d\"", lenFrame());
+
                   break;
             default:
                   xml.nput(" type=\"%d\"", type());
@@ -174,12 +188,32 @@ void MidiEventBase::read(Xml& xml)
                         break;
                   case Xml::Attribut:
                         if (tag == "tick")
-                              setTick(xml.s2().toInt());
+                        {
+                                _posType = Pos::TICKS;
+                                _tick = XTick(xml.parseInt());
+                        }
+                        else if (tag == "subtick")
+                        {
+                                assert(_posType == Pos::TICKS);
+                                _tick.subtick = xml.s2().toDouble();
+                        }
+                        else if (tag == "framepos")
+                        {
+                                _posType = Pos::FRAMES;
+                                _frame = xml.parseInt();
+                        }
+                        else if (tag == "len" || tag == "lenTick")
+                        {
+                                _lenType = Pos::TICKS;
+                                _lenTick = XTick(xml.parseInt());
+                        }
+                        else if (tag == "lenFrame")
+                        {
+                                _lenType = Pos::FRAMES;
+                                _lenFrame = xml.parseInt();
+                        }
                         else if (tag == "type")
-                              //setType(EventType(xml.s2().toInt()));
                               ev_type = xml.s2().toInt();
-                        else if (tag == "len")
-                              setLenTick(xml.s2().toInt());
                         else if (tag == "a")
                               a = xml.s2().toInt();
                         else if (tag == "b")

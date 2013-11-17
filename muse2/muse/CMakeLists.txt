@@ -92,6 +92,7 @@ file (GLOB core_source_files
       dialogs.cpp
       dssihost.cpp 
       event.cpp
+      eventbase.cpp
       eventlist.cpp 
       exportmidi.cpp 
       functions.cpp

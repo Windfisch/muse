@@ -80,7 +80,7 @@ bool WaveEventBase::isSimilarTo(const EventBase& other_) const
 	if (other==NULL) // dynamic cast hsa failed: "other_" is not of type WaveEventBase.
 		return false;
 	
-	return filename==other->filename && _spos==other->_spos && this->PosLen::operator==(*other);
+	return filename==other->filename && _spos==other->_spos && this->EventBase::operator==(*other);
 }
 
 //---------------------------------------------------------
@@ -157,8 +157,23 @@ void WaveEventBase::read(Xml& xml)
 				return;
 			case Xml::TagStart:
 				if (tag == "poslen")
-					PosLen::read(xml, "poslen");
-				else if (tag == "frame")
+				{
+					PosLen tmp;
+					tmp.read(xml, "poslen");
+
+					_posType = tmp.type();
+					_lenType = tmp.lenType();
+					if (tmp.type()==Pos::TICKS)
+					     _tick = tmp.tick();
+					else
+					     _frame = tmp.frame();
+
+					if (tmp.lenType()==Pos::TICKS)
+						_lenTick = tmp.lenTick();
+					else
+						_lenFrame = tmp.lenFrame();
+				}
+				else if (tag == "frame") // FIXME possibly deprecated, should be managed by audiostreams, check?
 					_spos = xml.parseInt();
 				else if (tag == "stretch_mode")
 					stretch_mode = (AudioStream::stretch_mode_t) xml.parseInt();
@@ -188,9 +203,24 @@ void WaveEventBase::read(Xml& xml)
 void WaveEventBase::write(int level, Xml& xml, const Pos& offset, bool forcePath) const
       {
       xml.tag(level++, "event");
-      PosLen wpos(*this);
+      
+      PosLen wpos;
+      wpos.setType(_posType);
+      wpos.setLenType(_lenType);
+      if (_posType == Pos::TICKS)
+            wpos.setTick(_tick);
+      else
+            wpos.setFrame(_frame);
+
+      if (_lenType == Pos::TICKS)
+            wpos.setLenTick(_lenTick);
+      else
+            wpos.setLenFrame(_lenFrame);
+
       wpos += offset;
       wpos.write(level, xml, "poslen");
+      
+
       xml.intTag(level, "frame", _spos);  // offset in wave file
 
       //

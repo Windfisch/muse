@@ -132,7 +132,6 @@ class Event { // TODO FINDMICH remove this layer around *EventBase!
       unsigned endTick() const;
       XTick endXTick() const;
       unsigned endFrame() const;
-      void setPos(const Pos& p);
       bool needCopyOnWrite();
       
       void setParentalPart(Part*); // TODO implement NOW FINDMICHJETZT

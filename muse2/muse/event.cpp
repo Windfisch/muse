@@ -27,53 +27,11 @@
 #include "waveevent.h"
 #include "midievent.h"
 
-// TODO FIXME remove this wrapping class
-
 namespace MusECore {
 
 //---------------------------------------------------------
 //   Event
 //---------------------------------------------------------
-
-EventBase::EventBase(EventType t)
-      {
-      _type     = t;
-      Pos::setType(TICKS); // wave parts are also in TICKS now.
-      PosLen::setLenType( t==Wave ? FRAMES : TICKS );
-      refCount  = 0;
-      parental_part=NULL;
-      _selected = false;
-      }
-
-EventBase::EventBase(const EventBase& ev)
-  : PosLen(ev)
-      {
-      refCount  = 0;
-      _selected = ev._selected;
-      _type     = ev._type;
-      parental_part = ev.parental_part;
-      }
-
-//---------------------------------------------------------
-//   move
-//---------------------------------------------------------
-
-void EventBase::move(int tickOffset)
-      {
-      setTick(tick() + tickOffset);
-      }
-
-//---------------------------------------------------------
-//   dump
-//---------------------------------------------------------
-
-void EventBase::dump(int n) const
-      {
-      for (int i = 0; i < n; ++i)
-            putchar(' ');
-      printf("Event %p refs:%d ", this, refCount);
-      PosLen::dump(n+2);
-      }
 
 //---------------------------------------------------------
 //   clone
@@ -224,11 +182,9 @@ void Event::setLenFrame(unsigned val)   { ev->setLenFrame(val); }
 unsigned Event::lenTick() const         { return ev->lenTick(); }
 XTick Event::lenXTick() const           { return ev->lenXTick(); }
 unsigned Event::lenFrame() const        { return ev->lenFrame(); }
-Pos Event::end() const                  { return ev->end(); }
-unsigned Event::endTick() const         { return ev->end().tick(); }
-XTick Event::endXTick() const           { return ev->end().xtick(); }
-unsigned Event::endFrame() const        { return ev->end().frame(); }
-void Event::setPos(const Pos& p)        { ev->setPos(p); }
+unsigned Event::endTick() const         { return ev->endTick(); }
+XTick Event::endXTick() const           { return ev->endXTick(); }
+unsigned Event::endFrame() const        { return ev->endFrame(); }
 
 bool Event::needCopyOnWrite() { return ev->needCopyOnWrite(); }
 
