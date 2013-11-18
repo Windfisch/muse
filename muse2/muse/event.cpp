@@ -113,7 +113,6 @@ bool Event::isSimilarTo(const Event& other) const
 int Event::getRefCount() const    { return ev->getRefCount(); }
 bool Event::selected() const      { return ev->_selected; }
 void Event::setSelected(bool val) { ev->_selected = val; }
-void Event::move(int offset)      { ev->move(offset); }
 
 void Event::read(Xml& xml)            
 { 

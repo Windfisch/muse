@@ -2135,7 +2135,7 @@ void Song::recordEvent(MidiTrack* mt, Event& event)
             part->setTick(startTick);
             part->setLenTick(endTick - startTick);
             part->setName(mt->name());
-            event.move(-startTick);
+            event.setTick(event.xtick()-XTick(startTick));
             part->addEvent(event);
             MusEGlobal::audio->msgAddPart(part);
             return;

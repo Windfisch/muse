@@ -681,6 +681,7 @@ void Song::cmdResizePart(Track* track, Part* oPart, unsigned int len, bool doClo
 //---------------------------------------------------------
 
 void Part::splitPart(int tickpos, Part*& p1, Part*& p2) const
+// TODO FINDMICHJETZT FIXME make tickpos a Pos, and do subticks!
       {
       int l1 = 0;       // len of first new part (ticks or samples)
       int l2 = 0;       // len of second new part
@@ -751,7 +752,7 @@ void Part::splitPart(int tickpos, Part*& p1, Part*& p2) const
                   Event event = ie->second.clone();
                   int t = event.tick();
                   if (t >= l1) {
-                        event.move(-l1);
+                        event.setTick(event.xtick()-XTick(l1));
                         p2->addEvent(event);
                         }
                   else

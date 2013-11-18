@@ -70,7 +70,6 @@ class Event { // TODO FINDMICH remove this layer around *EventBase!
       int getRefCount() const;
       bool selected() const;
       void setSelected(bool val);
-      void move(int offset);
 
       void read(Xml& xml);
       void write(int a, Xml& xml, const Pos& offset, bool ForceWavePaths = false) const;

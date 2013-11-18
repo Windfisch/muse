@@ -73,7 +73,6 @@ class EventBase {
       bool selected() const      { return _selected; }
       void setSelected(bool val) { _selected = val; }
 
-      void move(int offset); // FIXME DEPRECATED!
       XTick xtick() const;
       unsigned tick() const;
       audioframe_t frame() const;

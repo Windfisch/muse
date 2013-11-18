@@ -294,7 +294,7 @@ Part* Part::readFromXml(Xml& xml, Track* track, bool doClone, bool toTrack)
                                 // stored tickpos for event has absolute value. However internally
                                 // tickpos is relative to start of part, we substract tick().
                                 // TODO: better handling for wave event
-                                e.move( -npart->tick() );
+                                e.setTick(e.xtick() - npart->xtick() );
                                 int tick = e.tick();  
                                 
                                 if(tick < 0) 
