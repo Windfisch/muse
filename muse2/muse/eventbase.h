@@ -65,9 +65,9 @@ class EventBase {
       EventType type() const     { return _type;  }
       void setType(EventType t)  { _type = t;  }
       
-      void setPosType(Pos::TType t);
+      virtual void setPosType(Pos::TType t);
       Pos::TType posType() { return _posType; }
-      void setLenType(Pos::TType t);
+      virtual void setLenType(Pos::TType t);
       Pos::TType lenType() { return _lenType; }
       
       bool selected() const      { return _selected; }

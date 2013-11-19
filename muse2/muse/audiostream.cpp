@@ -38,6 +38,8 @@ namespace MusECore {
 
 AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t stretch_mode, XTick startXtick, unsigned startFrame)
 {
+	printf("DEBUG: stretch_mode is %s\n", stretch_mode == NO_STRETCHING ? "no" : "yes" );
+	
 	if (stretch_mode==NAIVE_STRETCHING) printf("ERROR: NAIVE_STRETCHING is not implemented yet!\n");
 	
 	initalisation_failed = false; // not yet

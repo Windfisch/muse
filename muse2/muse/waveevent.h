@@ -62,6 +62,9 @@ class WaveEventBase : public EventBase {
       WaveEventBase(const WaveEventBase&);
       virtual ~WaveEventBase();
       
+      virtual void setPosType(Pos::TType type);
+      virtual void setLenType(Pos::TType type);
+      
       virtual bool isSimilarTo(const EventBase& other) const;
 
       virtual void read(Xml&);

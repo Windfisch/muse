@@ -348,16 +348,13 @@ void prepareOperationGroup(Undo& group)
 					
 					Part* newp = p->duplicateEmpty();
 					newp->setType(postype);
+					newp->setLenType(postype);
 
 					for (MusECore::ciEvent ev = p->events().begin(); ev != p->events().end(); ++ev)
 					{
 						Event nev = ev->second.clone();
 						nev.setPosType(postype);
-						
-						if (postype==Pos::FRAMES)
-							nev.setFrame(MusEGlobal::tempomap.tick2frame(p->xtick() + ev->second.xtick()) - newp->frame());
-						else
-							nev.setTick(MusEGlobal::tempomap.frame2xtick(p->frame() + ev->second.frame()) - newp->xtick());
+						nev.setLenType(postype);
 						
 						newp->addEvent(nev);
 					}

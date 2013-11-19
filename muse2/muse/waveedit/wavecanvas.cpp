@@ -1435,6 +1435,8 @@ MusEGui::CItem* WaveCanvas::newItem(const QPoint& p, int key_modifiers)
       if (frame < 0)
             return 0;
       MusECore::Event e =  MusECore::Event(MusECore::Wave);
+
+      e.setParentalPart(curPart);
       e.setFrame(frame);
       e.setLenFrame(len);
       WEvent* we = new WEvent(e, curPart, height());

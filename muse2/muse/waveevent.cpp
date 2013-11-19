@@ -43,6 +43,7 @@ WaveEventBase::WaveEventBase(EventType t)
    : EventBase(t)
       {
       deleted = false;
+      stretch_mode = (_posType==Pos::TICKS && _lenType==Pos::TICKS) ? AudioStream::DO_STRETCHING : AudioStream::NO_STRETCHING;
       audiostream=NULL;
       _spos = 0;
       }
@@ -116,6 +117,27 @@ void WaveEventBase::dump(int n) const
       EventBase::dump(n);
       }
 
+void WaveEventBase::setPosType(Pos::TType type)
+{
+	EventBase::setPosType(type);
+	if (type == Pos::FRAMES)
+		stretch_mode = AudioStream::NO_STRETCHING;
+	
+	reloadAudioFile();
+}
+
+void WaveEventBase::setLenType(Pos::TType type)
+{
+	if (type == Pos::FRAMES || _posType == Pos::FRAMES)
+		stretch_mode = AudioStream::NO_STRETCHING;
+	else if (type == Pos::TICKS && stretch_mode == AudioStream::NO_STRETCHING)
+		stretch_mode = AudioStream::DO_STRETCHING;
+	
+	EventBase::setLenType(type);
+	reloadAudioFile();
+}
+
+
       
 void WaveEventBase::reloadAudioFile()
 {
@@ -126,11 +148,12 @@ void WaveEventBase::setAudioFile(const QString& path)
 {
 	filename = path;
 	if (audiostream) delete audiostream;
-
+	audiostream=NULL;
+	if (path=="") return;
 	
 	XTick startXtick = this->xtick() + parental_part->xtick();
 	unsigned startFrame = MusEGlobal::tempomap.tick2frame(startXtick);
-	audiostream = new MusECore::AudioStream(filename, MusEGlobal::sampleRate, AudioStream::DO_STRETCHING /*DEBUG FIXME TODO stretch_mode*/, startXtick, startFrame);
+	audiostream = new MusECore::AudioStream(filename, MusEGlobal::sampleRate, stretch_mode, startXtick, startFrame);
 
 	if (!audiostream->isGood())
 	{
