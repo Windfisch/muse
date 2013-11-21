@@ -75,7 +75,10 @@ class EventBase {
 
       XTick xtick() const;
       unsigned tick() const;
+      XTick absXTick() const;
+      unsigned absTick() const;
       audioframe_t frame() const;
+      audioframe_t absFrame() const;
       void setTick(unsigned);
       void setTick(XTick);
       void setFrame(audioframe_t);

@@ -29,12 +29,14 @@
 #include "tempo.h"
 #include "config.h"
 
+
 #ifdef RUBBERBAND_SUPPORT
   #include <rubberband/RubberBandStretcher.h>
 #endif
 
 namespace MusECore {
-
+	class WaveEventBase;
+	
 	class AudioStream // TODO findmich handle and replace Event.spos
 	{
 		public:
@@ -49,7 +51,7 @@ namespace MusECore {
 			/* After constructing a new AudioStream, you MUST check isGood(). If not yourStream.isGood(), then the
 			   object is in an undefined state and will not work. Delete it, then. */
 			AudioStream(QString filename, int sampling_rate, stretch_mode_t stretch_mode, // the sampling rate cannot be changed after creation.
-			            XTick startXtick, unsigned startFrame);
+			            const WaveEventBase* parent_ev);
 			~AudioStream();
 			
 			void seek(unsigned frame, XTick xtick); // which output-frame / xtick relative to the beginning of the AudioStream to seek to
@@ -94,9 +96,8 @@ namespace MusECore {
 			int rubberband_discard_frames;
 #endif
 			
+			const WaveEventBase* parental_event;
 			
-			unsigned frameStartInSong;
-			XTick xtickStartInSong;
 			TempoList fileTempoMap;     // this maps which xtick corresponds to which frame in the audio file
 	};
 	

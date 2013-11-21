@@ -117,6 +117,7 @@ void EventBase::setLenType(Pos::TType type)
 
 
 unsigned EventBase::tick() const { return xtick().tick; }
+unsigned EventBase::absTick() const { return absXTick().tick; }
 
 XTick EventBase::xtick() const {
 	if (_posType == Pos::TICKS)
@@ -133,6 +134,18 @@ XTick EventBase::xtick() const {
 	return XTick(0);
 }
 
+XTick EventBase::absXTick() const
+{
+	if (!parental_part)
+		die("FATAL ERROR: EventBase::absXTick() called, but no parental_part!");
+	
+	if (_posType == Pos::TICKS)
+		return _tick + parental_part->tick();
+	else
+		return MusEGlobal::tempomap.frame2xtick(parental_part->frame()+_frame);
+}
+
+
 audioframe_t EventBase::frame() const
 {
 	if (_posType == Pos::FRAMES)
@@ -147,6 +160,17 @@ audioframe_t EventBase::frame() const
 	
 	// will never be executed, but makes gcc happy
 	return 0;
+}
+
+audioframe_t EventBase::absFrame() const
+{
+	if (!parental_part)
+		die("FATAL ERROR: EventBase::absFrame() called, but no parental_part!");
+
+	if (_posType == Pos::FRAMES)
+		return _frame;
+	else
+		return MusEGlobal::tempomap.tick2frame(parental_part->xtick()+_tick);
 }
 
 void EventBase::setTick(unsigned tick) { setTick(XTick(tick)); }

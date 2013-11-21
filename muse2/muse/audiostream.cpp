@@ -26,6 +26,7 @@
 #include <string>
 #include <stdio.h>
 #include "xml.h"
+#include "waveevent.h"
 
 using namespace std;
 
@@ -36,11 +37,11 @@ using namespace std;
 
 namespace MusECore {
 
-AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t stretch_mode, XTick startXtick, unsigned startFrame)
+AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t stretch_mode, const WaveEventBase* parent_ev)
 {
 	printf("DEBUG: stretch_mode is %s\n", stretch_mode == NO_STRETCHING ? "no" : "yes" );
 	
-	if (stretch_mode==NAIVE_STRETCHING) printf("ERROR: NAIVE_STRETCHING is not implemented yet!\n");
+	if (stretch_mode==NAIVE_STRETCHING) printf("ERROR: NAIVE_STRETCHING is not implemented yet!\n"); // FIXME
 	
 	initalisation_failed = false; // not yet
 
@@ -62,8 +63,7 @@ AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t str
 	}
 #endif
 	
-	frameStartInSong=startFrame;
-	xtickStartInSong=startXtick;
+	parental_event=parent_ev;
 	
 	n_input_channels = sndfile->channels();
 	input_sampling_rate=sndfile->samplerate();
@@ -354,14 +354,14 @@ void AudioStream::update_stretch_ratio()
 // converts the given frame-position of the output stream into the given XTick of the input stream
 XTick AudioStream::relFrame2XTick(unsigned frame) const
 {
-	return MusEGlobal::tempomap.frame2xtick(frame + frameStartInSong) - xtickStartInSong;
+	return MusEGlobal::tempomap.frame2xtick(frame + parental_event->absFrame()) - parental_event->absXTick();
 	//return externalTempoMap.frame2xtick(frame);
 }
 
 unsigned AudioStream::relTick2Frame(XTick xtick) const
 {
-	unsigned retval = MusEGlobal::tempomap.tick2frame(xtick + xtickStartInSong);
-	if (retval >= frameStartInSong) return retval-frameStartInSong;
+	unsigned retval = MusEGlobal::tempomap.tick2frame(xtick + parental_event->absXTick());
+	if (retval >= parental_event->absFrame()) return retval - parental_event->absFrame();
 	else
 	{
 		printf("ERROR: THIS SHOULD NEVER HAPPEN: AudioStream::xtickToFrame(XTick xtick) called with invalid xtick\n");
