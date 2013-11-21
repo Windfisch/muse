@@ -144,7 +144,7 @@ class EventBase {
                              float** /*bpp*/, int /*channels*/, int /*nn*/, XTick /*fromXTick*/, XTick /*toXTick*/, bool /*doSeek*/, bool /*overwrite*/) { }
       virtual bool needCopyOnWrite() { return false; }
       
-      void setParentalPart(Part* p) { parental_part = p; }
+      void setParentalPart(Part* p);
       Part* getParentalPart() { return parental_part; }
 
       };

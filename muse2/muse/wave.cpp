@@ -1239,6 +1239,9 @@ bool MusE::importWaveToTrack(QString& name, unsigned tick, MusECore::Track* trac
 
       MusECore::Event event(MusECore::Wave);
       event.setParentalPart(part);
+      event.setPosType(part->poslen().type());
+      event.setLenType(part->poslen().type());
+      
       event.setAudioFile(name);
       event.setSpos(0);
       event.setLenFrame(samples);

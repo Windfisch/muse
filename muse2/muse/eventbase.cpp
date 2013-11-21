@@ -299,5 +299,17 @@ void EventBase::setLenFrame(audioframe_t len)
 	}
 }
 
+void EventBase::setParentalPart(Part* p)
+{
+	parental_part = p;
+	
+	if (p)
+	{
+		setPosType(p->poslen().type());
+		
+		if (p->poslen().type() == Pos::FRAMES)
+			setLenType(Pos::FRAMES);
+	}
+}
 
 } // namespace MusECore

@@ -88,6 +88,8 @@ class Part : public PosLen {
       virtual Part* createNewClone() const; // this does NOT chain clones yet. Chain is updated only when the part is really added!
       virtual void splitPart(int tickpos, Part*& p1, Part*& p2) const;
       
+      const PosLen& poslen() { return *this; }
+
       int clonemaster_sn() const       { return _clonemaster_sn; }
       int sn() const                   { return _sn; }
       int newSn()                      { return snGen++; }
