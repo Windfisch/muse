@@ -379,13 +379,17 @@ unsigned AudioStream::relTick2FrameInFile(XTick xtick) const
 
 void AudioStream::readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bool overwrite) const
 {
-	// TODO don't stretch when no_stretching!
-	// TODO FIXME the above rel*to* functions must respect No_stretching!
-	
-	unsigned pos_in_file = relTick2FrameInFile(relFrame2XTick(pos));
-	unsigned endpos_in_file = relTick2FrameInFile(relFrame2XTick(pos+mag));
-		
-	sndfile->readPeakRms(s, endpos_in_file-pos_in_file, pos_in_file, overwrite);
+	if (getStretchMode() != NO_STRETCHING)
+	{
+		unsigned pos_in_file = relTick2FrameInFile(relFrame2XTick(pos));
+		unsigned endpos_in_file = relTick2FrameInFile(relFrame2XTick(pos+mag));
+			
+		sndfile->readPeakRms(s, endpos_in_file-pos_in_file, pos_in_file, overwrite);
+	}
+	else
+	{
+		sndfile->readPeakRms(s, mag, pos, overwrite);
+	}
 }
 
 } // namespace MusECore
