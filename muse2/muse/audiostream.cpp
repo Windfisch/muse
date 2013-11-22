@@ -377,7 +377,7 @@ unsigned AudioStream::relTick2FrameInFile(XTick xtick) const
 }
 
 
-void AudioStream::readPeakRms(SampleV* s, int mag, unsigned pos, bool overwrite) const
+void AudioStream::readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bool overwrite) const
 {
 	// TODO don't stretch when no_stretching!
 	// TODO FIXME the above rel*to* functions must respect No_stretching!

@@ -57,6 +57,8 @@ namespace MusECore {
 			void seek(unsigned frame, XTick xtick); // which output-frame / xtick relative to the beginning of the AudioStream to seek to
 			unsigned readAudio(float** deinterleaved_dest_buffer, int n_output_channels, int nFrames, bool overwrite); // returns the number of frames read.
 			
+			/** the following rel{Frame,Tick}2{Tick,Frame}* functions only produce
+			 *  meaningful results when in STRETCHING mode */
 			XTick relFrame2XTick(unsigned frame) const;
 			XTick relFrameInFile2XTick(unsigned frame) const;
 			unsigned relTick2Frame(XTick xtick) const;        // those are relative to the AudioStream's beginning.
@@ -67,7 +69,7 @@ namespace MusECore {
 			
 			stretch_mode_t getStretchMode() const { return doStretch ? DO_STRETCHING : NO_STRETCHING; }
 			
-			void readPeakRms(SampleV* s, int mag, unsigned pos, bool overwrite = true) const;
+			void readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bool overwrite = true) const;
 			
 		private:
 			void maybe_update_stretch_ratio();

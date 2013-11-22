@@ -26,6 +26,7 @@
 
 #include <list>
 #include <sndfile.h>
+#include "audioframe_t.h"
 
 #include <QString>
 #include <lo/lo_osc_types.h>
@@ -114,7 +115,7 @@ class SndFile {
       size_t write(int channel, float**, size_t);
 
       off_t seek(off_t frames, int whence);
-      void readPeakRms(SampleV* s, int mag, unsigned pos, bool overwrite = true);
+      void readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bool overwrite = true);
       QString strerror() const;
 
       static SndFile* search(const QString& name);
@@ -183,7 +184,7 @@ class SndFileR {
       off_t seek(off_t frames, int whence) {
             return sf->seek(frames, whence);
             }
-      void readPeakRms(SampleV* s, int mag, unsigned pos, bool overwrite = true) {
+      void readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bool overwrite = true) {
             sf->readPeakRms(s, mag, pos, overwrite);
             }
       QString strerror() const { return sf->strerror(); }

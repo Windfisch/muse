@@ -326,7 +326,7 @@ void SndFile::writeCache(const QString& path)
 //   read
 //---------------------------------------------------------
 
-void SndFile::readPeakRms(SampleV* s, int mag, unsigned pos, bool overwrite)
+void SndFile::readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bool overwrite)
       {
       if(overwrite)
         for (unsigned ch = 0; ch < channels(); ++ch) {
