@@ -138,9 +138,9 @@ AudioStream::~AudioStream()
 #endif
 }
 
-void AudioStream::seek(unsigned int frame, XTick xtick)
+void AudioStream::seek(audioframe_t frame, XTick xtick)
 {
-	unsigned int destFrame; // which frame in the input file to seek to.
+	audioframe_t destFrame; // which frame in the input file to seek to.
 	
 	if (doStretch) // we're only interested in the xtick
 		destFrame = relTick2FrameInFile(xtick);
@@ -381,8 +381,8 @@ void AudioStream::readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bo
 {
 	if (getStretchMode() != NO_STRETCHING)
 	{
-		unsigned pos_in_file = relTick2FrameInFile(relFrame2XTick(pos));
-		unsigned endpos_in_file = relTick2FrameInFile(relFrame2XTick(pos+mag));
+		audioframe_t pos_in_file = relTick2FrameInFile(relFrame2XTick(pos));
+		audioframe_t endpos_in_file = relTick2FrameInFile(relFrame2XTick(pos+mag));
 			
 		sndfile->readPeakRms(s, endpos_in_file-pos_in_file, pos_in_file, overwrite);
 	}

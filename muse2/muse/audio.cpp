@@ -750,11 +750,11 @@ void Audio::seek(audioframe_t p)
       {
       if (_frame == p) {
             if(MusEGlobal::debugMsg)
-              printf("Audio::seek already there. frame:%d\n",p);
+              printf("Audio::seek already there. frame:%d\n",(int)p);
             return;        
             }
       if (MusEGlobal::heavyDebugMsg)
-        printf("Audio::seek frame:%d\n", p);
+        printf("Audio::seek frame:%d\n", (int)p);
         
 #ifdef _AUDIO_USE_TRUE_FRAME_
       _previousPos = _pos;

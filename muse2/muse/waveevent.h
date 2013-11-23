@@ -49,7 +49,7 @@ class WaveEventBase : public EventBase {
       QString filename;
 
       AudioStream* audiostream;
-      unsigned streamPosition;
+      audioframe_t streamPosition;
       AudioStream::stretch_mode_t stretch_mode;
       
       int _spos;            // start sample position in WaveFile
@@ -84,7 +84,7 @@ class WaveEventBase : public EventBase {
       virtual AudioStream::stretch_mode_t stretchMode() { return stretch_mode; }
       virtual const AudioStream* getAudioStream()   { return audiostream; }
 
-      virtual void readAudio(WavePart* part, unsigned firstFrame, 
+      virtual void readAudio(WavePart* part, audioframe_t firstFrame, 
                              float** bpp, int channels, int nFrames, XTick fromXTick, XTick toXTick, bool doSeek, bool overwrite);
       
       virtual bool needCopyOnWrite();

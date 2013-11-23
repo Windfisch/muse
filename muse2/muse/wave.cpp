@@ -1059,7 +1059,7 @@ void Song::cmdAddRecordedWave(MusECore::WaveTrack* track, MusECore::Pos s, MusEC
                                  // counter has dropped by 2 and _recFile will probably deleted then
         remove(st.toLatin1().constData());
         if(MusEGlobal::debugMsg)
-          printf("Song::cmdAddRecordedWave: remove file %s - startframe=%d endframe=%d\n", st.toLatin1().constData(), s.frame(), e.frame());  
+          printf("Song::cmdAddRecordedWave: remove file %s - startframe=%d endframe=%d\n", st.toLatin1().constData(), (int)s.frame(), (int)e.frame());  
       
         // Restore master flag. 
         if(MusEGlobal::extSyncFlag.value() && !master_was_on)

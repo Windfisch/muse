@@ -54,7 +54,7 @@ namespace MusECore {
 			            const WaveEventBase* parent_ev);
 			~AudioStream();
 			
-			void seek(unsigned frame, XTick xtick); // which output-frame / xtick relative to the beginning of the AudioStream to seek to
+			void seek(audioframe_t frame, XTick xtick); // which output-frame / xtick relative to the beginning of the AudioStream to seek to
 			unsigned readAudio(float** deinterleaved_dest_buffer, int n_output_channels, int nFrames, bool overwrite); // returns the number of frames read.
 			
 			/** the following rel{Frame,Tick}2{Tick,Frame}* functions only produce

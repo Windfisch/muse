@@ -140,7 +140,7 @@ class EventBase {
       virtual void reloadAudioFile() { } 
       virtual AudioStream::stretch_mode_t stretchMode() { return AudioStream::NO_STRETCHING; }
       virtual const AudioStream* getAudioStream()   { return NULL; }
-      virtual void readAudio(WavePart* /*part*/, unsigned /*offset*/, 
+      virtual void readAudio(WavePart* /*part*/, audioframe_t /*offset*/, 
                              float** /*bpp*/, int /*channels*/, int /*nn*/, XTick /*fromXTick*/, XTick /*toXTick*/, bool /*doSeek*/, bool /*overwrite*/) { }
       virtual bool needCopyOnWrite() { return false; }
       

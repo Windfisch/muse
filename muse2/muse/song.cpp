@@ -1113,7 +1113,7 @@ void Song::setPos(int idx, const Pos& val, bool sig,
            idx, sig, isSeek, adjustScrollbar);
         val.dump(0);
         printf("\n");
-        printf("Song::setPos before MusEGlobal::audio->msgSeek idx:%d isSeek:%d frame:%d\n", idx, isSeek, val.frame());
+        printf("Song::setPos before MusEGlobal::audio->msgSeek idx:%d isSeek:%d frame:%d\n", idx, isSeek, (int)val.frame());
       }
       
       if (idx == CPOS) {
@@ -1121,17 +1121,17 @@ void Song::setPos(int idx, const Pos& val, bool sig,
             if (isSeek && !MusEGlobal::extSyncFlag.value()) {  
                   if (val.frame() == MusEGlobal::audio->framePos())  
                   {
-                      if (MusEGlobal::heavyDebugMsg) printf("Song::setPos seek MusEGlobal::audio->pos already == val tick:%d frame:%d\n", val.tick(), val.frame());   
+                      if (MusEGlobal::heavyDebugMsg) printf("Song::setPos seek MusEGlobal::audio->pos already == val tick:%d frame:%d\n", val.tick(), (int)val.frame());   
                       return;
                   }     
                   MusEGlobal::audio->msgSeek(val.frame());
-                  if (MusEGlobal::heavyDebugMsg) printf("Song::setPos after MusEGlobal::audio->msgSeek idx:%d isSeek:%d frame:%d\n", idx, isSeek, val.frame());
+                  if (MusEGlobal::heavyDebugMsg) printf("Song::setPos after MusEGlobal::audio->msgSeek idx:%d isSeek:%d frame:%d\n", idx, isSeek, (int)val.frame());
                   return;
                   }
             }
       if (val == pos[idx])
       {
-           if (MusEGlobal::heavyDebugMsg) printf("Song::setPos MusEGlobal::song->pos already == val tick:%d frame:%d\n", val.tick(), val.frame());   
+           if (MusEGlobal::heavyDebugMsg) printf("Song::setPos MusEGlobal::song->pos already == val tick:%d frame:%d\n", val.tick(), (int)val.frame());   
            return;
       }     
       pos[idx] = val;

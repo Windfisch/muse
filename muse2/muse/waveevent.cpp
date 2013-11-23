@@ -265,10 +265,10 @@ void WaveEventBase::write(int level, Xml& xml, const Pos& offset, bool forcePath
       
 #define STREAM_SEEK_THRESHOLD 10
 
-void WaveEventBase::readAudio(WavePart* part, unsigned firstFrame, float** buffer, int channels, int nFrames, XTick fromXTick, XTick toXTick, bool doSeek, bool overwrite)
+void WaveEventBase::readAudio(WavePart* part, audioframe_t firstFrame, float** buffer, int channels, int nFrames, XTick fromXTick, XTick toXTick, bool doSeek, bool overwrite)
 {
   if (MusEGlobal::heavyDebugMsg)
-    printf("readAudio, firstFrame=%i, channels=%i\n", firstFrame, channels);
+    printf("readAudio, firstFrame=%i, channels=%i\n", (int)firstFrame, channels);
 // doSeek is unreliable! it does not respect moving the part or event!
   
 // firstFrame is the sample position to read from. usually, that's the last firstFrame + the last nFrames

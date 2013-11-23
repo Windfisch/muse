@@ -29,6 +29,7 @@
 #include "tempo.h"
 #include "globals.h"
 #include "al/sig.h"
+#include "audioframe_t.h"
 
 namespace MusEGlobal
 {
@@ -369,7 +370,7 @@ namespace MusECore
 		switch (lenType())
 		{
 			case FRAMES:
-				printf("samples=%d)\n", _lenFrame);
+				printf("samples=%d)\n", (int)_lenFrame);
 				break;
 			
 			case TICKS:
@@ -384,7 +385,7 @@ namespace MusECore
 		switch (type())
 		{
 			case FRAMES:
-				printf("samples=%d)", _frame);
+				printf("samples=%d)", (int)_frame);
 				break;
 			
 			case TICKS:
