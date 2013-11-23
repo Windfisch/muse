@@ -1341,7 +1341,6 @@ void schedule_resize_all_same_len_clone_parts(const Part* part, unsigned new_len
 		if (op_it->type==UndoOp::DeletePart)
 			already_done.insert(op_it->part);
 			
-	unsigned old_len_orig = (part->lenType() == Pos::FRAMES) ? part->lenFrame() : part->lenTick();
 	unsigned old_len = (lentype == Pos::FRAMES) ? part->lenFrame() : part->lenTick();
 	
 	if (old_len!=new_len)
