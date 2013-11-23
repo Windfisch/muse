@@ -388,7 +388,10 @@ void AudioStream::readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bo
 	}
 	else
 	{
-		sndfile->readPeakRms(s, mag, pos, overwrite);
+		audioframe_t pos_in_file = pos*input_sampling_rate/output_sampling_rate;
+		audioframe_t endpos_in_file = (pos+mag)*input_sampling_rate/output_sampling_rate;
+		
+		sndfile->readPeakRms(s, endpos_in_file-pos_in_file, pos_in_file, overwrite);
 	}
 }
 
