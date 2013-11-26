@@ -147,6 +147,11 @@ class EventBase {
       void setParentalPart(Part* p);
       Part* getParentalPart() { return parental_part; }
 
+      /** do whichever preparations neccessary when the object is about to be used */
+      virtual void arm() {}
+      /** cleanup unneeded stuff when the object won't be used for a while */
+      virtual void disarm() {}
+
       };
 
 } // namespace MusECore

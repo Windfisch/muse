@@ -943,6 +943,15 @@ void Song::revertOperationGroup1(Undo& operations)
                         updateFlags |= SC_SELECTION;
                         break;
                         
+                  case UndoOp::DeleteEvent:
+                        i->nEvent.arm();
+                        break;
+                        
+                  case UndoOp::DeletePart:
+                        for (iEvent it = editable_part->nonconst_events().begin(); it != editable_part->nonconst_events().end(); it++)
+                              it->second.arm();
+                        break;
+                        
                   case UndoOp::AddTrack:
                         removeTrack1(editable_track);
                         break;
@@ -1029,8 +1038,15 @@ void Song::revertOperationGroup3(Undo& operations)
       for (riUndoOp i = operations.rbegin(); i != operations.rend(); ++i) {
             Track* editable_track = const_cast<Track*>(i->track);
 // uncomment if needed            Track* editable_property_track = const_cast<Track*>(i->_propertyTrack);
-// uncomment if needed            Part* editable_part = const_cast<Part*>(i->part);
+            Part* editable_part = const_cast<Part*>(i->part);
             switch(i->type) {
+                  case UndoOp::AddEvent:
+                        i->nEvent.disarm();
+                        break;
+                  case UndoOp::AddPart:
+                        for (iEvent it = editable_part->nonconst_events().begin(); it != editable_part->nonconst_events().end(); it++)
+                              it->second.disarm();
+                        break;
                   case UndoOp::AddTrack:
                         removeTrack3(editable_track);
                         break;
@@ -1079,6 +1095,14 @@ void Song::executeOperationGroup1(Undo& operations)
                         updateFlags |= SC_SELECTION;
                         break;
                         
+                  case UndoOp::AddEvent:
+                        i->nEvent.arm();
+                        break;
+                  case UndoOp::AddPart:
+                        for (iEvent it = editable_part->nonconst_events().begin(); it != editable_part->nonconst_events().end(); it++)
+                              it->second.arm();
+                        break;
+                  
                   case UndoOp::AddTrack:
                         insertTrack1(editable_track, i->trackno);
 
@@ -1160,8 +1184,15 @@ void Song::executeOperationGroup3(Undo& operations)
       for (iUndoOp i = operations.begin(); i != operations.end(); ++i) {
             Track* editable_track = const_cast<Track*>(i->track);
 // uncomment if needed            Track* editable_property_track = const_cast<Track*>(i->_propertyTrack);
-// uncomment if needed            Part* editable_part = const_cast<Part*>(i->part);
+            Part* editable_part = const_cast<Part*>(i->part);
             switch(i->type) {
+                  case UndoOp::DeleteEvent:
+                        i->nEvent.disarm();
+                        break;
+                  case UndoOp::DeletePart:
+                        for (iEvent it = editable_part->nonconst_events().begin(); it != editable_part->nonconst_events().end(); it++)
+                              it->second.disarm();
+                        break;
                   case UndoOp::AddTrack:
                         insertTrack3(editable_track, i->trackno);
                         break;

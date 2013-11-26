@@ -48,6 +48,7 @@ class WaveEventBase : public EventBase {
       QString _name;
       QString filename;
 
+      bool armed;
       AudioStream* audiostream;
       audioframe_t streamPosition;
       AudioStream::stretch_mode_t stretch_mode;
@@ -77,7 +78,12 @@ class WaveEventBase : public EventBase {
       virtual void setName(const QString& s)   { _name = s;     }
       virtual int spos() const                 { return _spos;  }
       virtual void setSpos(int s)              { _spos = s;     }
-      
+
+      /** do whichever preparations neccessary when the object is about to be used */
+      virtual void arm();
+      /** cleanup unneeded stuff when the object won't be used for a while */
+      virtual void disarm();
+
       virtual void reloadAudioFile();
       virtual void setAudioFile(const QString& path);
       virtual QString audioFilePath()               { return filename; }

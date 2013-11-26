@@ -134,6 +134,11 @@ class Event { // TODO FINDMICH remove this layer around *EventBase!
       bool needCopyOnWrite();
       
       void setParentalPart(Part*);
+
+      /** do whichever preparations neccessary when the object is about to be used */
+      void arm();
+      /** cleanup unneeded stuff when the object won't be used for a while */
+      void disarm();
       };
 
 typedef std::multimap <unsigned, Event, std::less<unsigned> > EL;

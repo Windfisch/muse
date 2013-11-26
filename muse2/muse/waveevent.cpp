@@ -137,6 +137,28 @@ void WaveEventBase::setLenType(Pos::TType type)
 	reloadAudioFile();
 }
 
+/** do whichever preparations neccessary when the object is about to be used */
+void WaveEventBase::arm()
+{
+	if (!armed)
+	{
+		armed=true;
+		reloadAudioFile();
+	}
+}
+
+/** cleanup unneeded stuff when the object won't be used for a while */
+void WaveEventBase::disarm()
+{
+	if (armed)
+	{
+		armed=false;
+		if (audiostream)
+			delete audiostream;
+		
+		audiostream=NULL;
+	}
+}
 
       
 void WaveEventBase::reloadAudioFile()
@@ -151,15 +173,18 @@ void WaveEventBase::setAudioFile(const QString& path)
 	audiostream=NULL;
 	if (path=="") return;
 	
-	audiostream = new MusECore::AudioStream(filename, MusEGlobal::sampleRate, stretch_mode, this);
-
-	if (!audiostream->isGood())
+	if (armed)
 	{
-		delete audiostream;
-		audiostream=NULL;
+		audiostream = new MusECore::AudioStream(filename, MusEGlobal::sampleRate, stretch_mode, this);
+
+		if (!audiostream->isGood())
+		{
+			delete audiostream;
+			audiostream=NULL;
+		}
+		
+		streamPosition = 0; // cause a seek on the next readAudio call.
 	}
-	
-	streamPosition = 0; // cause a seek on the next readAudio call.
 }
       
 //---------------------------------------------------------

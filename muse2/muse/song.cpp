@@ -2783,6 +2783,10 @@ void Song::insertTrack0(Track* track, int idx)
 
 void Song::insertTrack1(Track* track, int /*idx*/)
       {
+      for (iPart part_it = track->parts()->begin(); part_it != track->parts()->end(); part_it++)
+            for (iEvent event_it = part_it->second->nonconst_events().begin(); event_it != part_it->second->nonconst_events().end(); event_it++)
+                  event_it->second.arm();
+            
       switch(track->type()) {
             case Track::AUDIO_SOFTSYNTH:
                   {
@@ -3123,9 +3127,12 @@ void Song::removeTrack2(Track* track)
 //    non realtime part of removeTrack
 //---------------------------------------------------------
 
-//empty. gets executed after the realtime part
-void Song::removeTrack3(Track* /*track*/)//prevent of compiler warning: unused parameter
+//gets executed after the realtime part
+void Song::removeTrack3(Track* track)
 {
+      for (iPart part_it = track->parts()->begin(); part_it != track->parts()->end(); part_it++)
+            for (iEvent event_it = part_it->second->nonconst_events().begin(); event_it != part_it->second->nonconst_events().end(); event_it++)
+                  event_it->second.disarm();
 }
 
 //---------------------------------------------------------

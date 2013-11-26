@@ -188,5 +188,7 @@ unsigned Event::endFrame() const        { return ev->endFrame(); }
 bool Event::needCopyOnWrite() { return ev->needCopyOnWrite(); }
 
 void Event::setParentalPart(Part* p) { ev->setParentalPart(p); }
+void Event::arm() { ev->arm(); }
+void Event::disarm() { ev->disarm(); }
 
 } // namespace MusECore
