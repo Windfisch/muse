@@ -198,12 +198,8 @@ void WaveEventBase::read(Xml& xml)
 					_spos = xml.parseInt();
 				else if (tag == "stretch_mode")
 					stretch_mode = (AudioStream::stretch_mode_t) xml.parseInt();
-				else if (tag == "file") {
-					if (audiostream) delete audiostream;
-					
-					filename = xml.parse1();
+				else if (tag == "file")
 					setAudioFile(filename);
-				}
 				else
 					xml.unknown("Event");
 				break;
@@ -273,8 +269,12 @@ void WaveEventBase::readAudio(WavePart* part, audioframe_t firstFrame, float** b
   
 // firstFrame is the sample position to read from. usually, that's the last firstFrame + the last nFrames
 
-// TODO: this will horribly break with clone parts! each clone must have its own audiostream (and streamPosition)!.
-  
+  if (audiostream==NULL)
+  {
+      fprintf(stderr, "ERROR: THIS SHOULD NEVER HAPPEN: WaveEventBase::readAudio() called on an unactivated Event (audiostream==NULL)!\n");
+      return; // uh oh, expect glitches
+  }
+
   if (doSeek || firstFrame != streamPosition)
   {
     if (!doSeek && firstFrame >= streamPosition && firstFrame <= streamPosition+STREAM_SEEK_THRESHOLD)

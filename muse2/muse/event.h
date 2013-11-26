@@ -133,7 +133,7 @@ class Event { // TODO FINDMICH remove this layer around *EventBase!
       unsigned endFrame() const;
       bool needCopyOnWrite();
       
-      void setParentalPart(Part*); // TODO implement NOW FINDMICHJETZT
+      void setParentalPart(Part*);
       };
 
 typedef std::multimap <unsigned, Event, std::less<unsigned> > EL;

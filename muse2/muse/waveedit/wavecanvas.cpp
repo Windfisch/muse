@@ -1174,6 +1174,8 @@ void WaveCanvas::drawItem(QPainter& p, const MusEGui::CItem* item, const QRect& 
               }
             }
       }
+      else
+            fprintf(stderr, "ERROR: THIS SHOULD NEVER HAPPEN: audiostream was NULL in WaveCanvas::drawItem()!\n");
 
       //      
       // Draw custom dashed borders around the wave event
@@ -1995,8 +1997,11 @@ MusECore::WaveSelectionList WaveCanvas::getSelection(XTick startpos, XTick stopp
 			if (event.empty())
 				continue;
 			
-			if (event.getAudioStream()==NULL) // TODO sollte passen
+			if (event.getAudioStream()==NULL)
+			{
+				fprintf(stderr, "ERROR: THIS SHOULD NEVER HAPPEN: event.getAudioStream()==NULL in WaveCanvas::getSelection()!\n");
 				continue;
+			}
 			
 			// Respect part end: Don't modify stuff outside of part boundary.
 			XTick event_length = event.lenXTick();
@@ -2006,7 +2011,7 @@ MusECore::WaveSelectionList WaveCanvas::getSelection(XTick startpos, XTick stopp
 				if(event.xtick() > wp->lenXTick())
 					continue; // ignore this event
 				else
-					               event_length = wp->lenXTick() - event.xtick();
+					event_length = wp->lenXTick() - event.xtick();
 			}
 			
 			XTick event_begin = event.xtick() + part_offset;

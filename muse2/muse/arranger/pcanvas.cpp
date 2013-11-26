@@ -2136,7 +2136,11 @@ void PartCanvas::drawWavePart(QPainter& p,
             MusECore::Event event = e->second;
             const MusECore::AudioStream* audiostream  = event.getAudioStream();
             if (audiostream==NULL)
+            {
+                  fprintf(stderr, "ERROR: THIS SHOULD NEVER HAPPEN: audiostream was NULL in PartCanvas::drawWavePart()!\n");
                   continue;
+            }
+            
             unsigned channels = audiostream->get_n_input_channels();
             if (channels == 0) {
                   printf("drawWavePart: channels==0! %s\n", event.audioFilePath().toLatin1().constData());
