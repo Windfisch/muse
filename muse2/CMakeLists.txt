@@ -469,13 +469,13 @@ IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
   INCLUDE(CPack)
 ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 
-set(CMAKE_CXX_FLAGS         "-Wall -Wextra -Winvalid-pch -fno-exceptions -fPIC ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS         "-Wall -Wextra -Winvalid-pch -fPIC ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -fomit-frame-pointer -ffast-math -fstrength-reduce -fPIC ${CMAKE_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_DEBUG   "-g -DQT_DEBUG -fPIC ${CMAKE_CXX_FLAGS_DEBUG}")
 
 # NOTE: share/ directory needs to be at the end so that the translations
 #       are scanned before coming to share/locale
-subdirs(doc al awl grepmidi man plugins muse synti packaging utils demos share)
+subdirs(doc al awl grepmidi man plugins muse synti packaging utils demos share soundtouch-bpmdetect)
 
 ## Install doc files
 file (GLOB doc_files

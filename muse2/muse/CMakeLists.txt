@@ -245,7 +245,8 @@ target_link_libraries(core
       waveedit
       widgets 
       widgets_functiondialogs
-      
+      soundtouch_bpmdetect 
+
       ${QT_LIBRARIES}
       ${SNDFILE_LIBRARIES}
       ${SAMPLERATE_LIBRARIES}

@@ -872,46 +872,65 @@ void WaveCanvas::wheelEvent(QWheelEvent* ev)
 //---------------------------------------------------------
 
 bool WaveCanvas::mousePress(QMouseEvent* event)
-      {
+{
     if (event->modifiers() & Qt::ControlModifier) {
-            return true;
-            }
-      button = event->button();
-      QPoint pt = event->pos();
-      //CItem* item = items.find(pt);
-      unsigned x = event->x();
+        return true;
+    }
+    button = event->button();
+    QPoint pt = event->pos();
+    unsigned x = event->x();
 
-      switch (_tool) {
+    if (button==Qt::LeftButton)
+    {
+        switch (_tool) {
+            case RangeTool:
+                  if (mode == NORMAL) {
+                  // redraw and reset:
+                  if (!selectionStart.invalid) {
+                        selectionStart = selectionStop = XTick::createInvalidXTick();
+                        redraw();
+                  }
+                  mode = DRAG;
+                  dragstartx = MusEGlobal::tempomap.frame2xtick(x);
+                  selectionStart = selectionStop = dragstartx;
+                  drag = DRAG_LASSO_START;
+                  Canvas::start = pt;
+                  return false;
+                  }
+
+                  break;
+
+              
             default:
                   break;
-             case RangeTool:
-                  switch (button) {
-                        case Qt::LeftButton:
-                              if (mode == NORMAL) {
-                                    // redraw and reset:
-                                    if (!selectionStart.invalid) {
-                                          selectionStart = selectionStop = XTick::createInvalidXTick();
-                                          redraw();
-                                          }
-                                    mode = DRAG;
-                                    dragstartx = MusEGlobal::tempomap.frame2xtick(x);
-                                    selectionStart = selectionStop = dragstartx;
-                                    drag = DRAG_LASSO_START;
-                                    Canvas::start = pt;
-                                    return false;
-                                    }
-                              break;
 
-                        case Qt::MidButton:
-                        case Qt::RightButton:
-                        default:
-                              break;
-                        }
-
-                   break;
-            }
-      return true;
       }
+    }
+    else if (button==Qt::RightButton)
+    {
+        switch (_tool) {
+            case RangeTool:
+            case PointerTool:
+            case PencilTool:
+            case PanTool:
+            case ZoomTool:
+            {
+                  CItem* item = items.find(pt);
+                  
+                  // TODO
+
+             
+            }     
+                  break;
+                  
+            default:
+                  break;
+
+        }
+
+        return true;
+    }
+}
 
 //---------------------------------------------------------
 //   viewMouseReleaseEvent
