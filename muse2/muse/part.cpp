@@ -628,25 +628,6 @@ void Song::cmdResizePart(Track* track, Part* oPart, unsigned int len, bool doClo
       {
       switch(track->type()) {
             case Track::WAVE:
-                  {
-                  Undo operations;
-									
-									unsigned orig_len=oPart->lenFrame();
-									WavePart* part_it=(WavePart*)oPart;
-									do
-									{
-										if (part_it->lenFrame()==orig_len)
-										{
-											// Do port controller values but not clone parts. 
-											operations.push_back(UndoOp(UndoOp::ModifyPartLengthFrames, part_it, part_it->lenFrame(), len, true, false));
-										}
-										
-										part_it=(WavePart*)part_it->nextClone();
-									} while (doClones && (part_it != (WavePart*)oPart));
-                  
-                  MusEGlobal::song->applyOperationGroup(operations);
-                  break;
-                  }
             case Track::MIDI:
             case Track::DRUM:
             case Track::NEW_DRUM:
@@ -654,7 +635,7 @@ void Song::cmdResizePart(Track* track, Part* oPart, unsigned int len, bool doClo
                   Undo operations;
 									
 									unsigned orig_len=oPart->lenTick();
-									MidiPart* part_it=(MidiPart*)oPart;
+									Part* part_it=oPart;
 									do
 									{
 										if (part_it->lenTick()==orig_len)
@@ -663,8 +644,8 @@ void Song::cmdResizePart(Track* track, Part* oPart, unsigned int len, bool doClo
 											operations.push_back(UndoOp(UndoOp::ModifyPartLength, part_it, part_it->lenTick(), len, true, false));
 										}
 										
-										part_it=(MidiPart*)part_it->nextClone();
-									} while (doClones && (part_it != (MidiPart*)oPart));
+										part_it=part_it->nextClone();
+									} while (doClones && (part_it != oPart));
                   
                   MusEGlobal::song->applyOperationGroup(operations);
                   break;
