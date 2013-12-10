@@ -1227,6 +1227,8 @@ bool MusE::importWaveToTrack(QString& name, unsigned tick, MusECore::Track* trac
       {
       if (track==NULL)
             track = (MusECore::WaveTrack*)(_arranger->curTrack());
+      
+      bool doStretch = !track->locked();
 
       MusECore::SndFileR f = MusECore::getWave(name, true); // TODO make that nicer.
 
@@ -1235,64 +1237,71 @@ bool MusE::importWaveToTrack(QString& name, unsigned tick, MusECore::Track* trac
 
       audioframe_t samp_rate = f->samplerate();
       
-      // TODO no no no, that must be something only AudioStream might know... fix that! FIXME
       audioframe_t samples = ((audioframe_t)f->samples()) * MusEGlobal::sampleRate / samp_rate;
+      XTick lenXTick;
 
-      FILE* tempofile=fopen( (name+".tempo").toLatin1().constData(), "r" );
-      if (tempofile)
+      if (doStretch)
       {
-            fclose(tempofile);
-      }
-      else // doesn't exist
-      {
-            // let's create it!
-            
-            printf("%s.tempo doesn't exist, trying automagic BPM detection...\n", name.toLatin1().constData());
-            
-            using namespace soundtouch;
-            
-            BPMDetect bpmdetect(channels, samp_rate);
-            
-            audioframe_t frames_to_read = f->samples();
-            while (frames_to_read > 0)
+            FILE* tempofile=fopen( (name+".tempo").toLatin1().constData(), "r" );
+            if (tempofile)
             {
-                  printf(".");
-                  audioframe_t read_now = frames_to_read;
-                  if (read_now > 4096) read_now=4096;
-                  float sndfile_buffer[read_now*channels];
-                  f->readDirect(sndfile_buffer, read_now);
-                  
-                  bpmdetect.inputSamples(sndfile_buffer, read_now);
-                  
-                  frames_to_read-=read_now;
+                  fclose(tempofile);
             }
-            
-            float bpm = bpmdetect.getBpm();
-            
-            if (bpm <= 0)
+            else // doesn't exist
             {
-                  printf("\n  AWWWW :( ... Automatic BPM detection failed :|\n");
-            }
-            else
-            {
-                  FILE* tempofile=fopen( (name+".tempo").toLatin1().constData(), "w" );
-                  if (tempofile)
+                  // let's create it!
+                  
+                  printf("%s.tempo doesn't exist, trying automagic BPM detection...\n", name.toLatin1().constData());
+                  
+                  using namespace soundtouch;
+                  
+                  BPMDetect bpmdetect(channels, samp_rate);
+                  
+                  f->seek(0, SEEK_SET);
+                  audioframe_t frames_to_read = f->samples();
+                  while (frames_to_read > 0)
                   {
-                        MusECore::Xml xml(tempofile);
-                        MusECore::TempoList temp_tempo;
-                        temp_tempo.addTempo(0, (int) ((1000000.0 * 60.0)/bpm));
-                        temp_tempo.write(0,xml);
-                        fclose(tempofile);
-                        printf("\ndetected %f BPM.\n", bpm);
+                        printf(".");
+                        audioframe_t read_now = frames_to_read;
+                        if (read_now > 4096) read_now=4096;
+                        float sndfile_buffer[read_now*channels];
+                        f->readDirect(sndfile_buffer, read_now);
+                        
+                        bpmdetect.inputSamples(sndfile_buffer, read_now);
+                        
+                        frames_to_read-=read_now;
+                  }
+                  
+                  float bpm = bpmdetect.getBpm();
+                  
+                  if (bpm <= 0)
+                  {
+                        printf("\n  AWWWW :( ... Automatic BPM detection failed :|\n");
                   }
                   else
                   {
-                        printf("\nERROR: could not write %s.tempo :(\n", name.toLatin1().constData());
+                        FILE* tempofile=fopen( (name+".tempo").toLatin1().constData(), "w" );
+                        if (tempofile)
+                        {
+                              MusECore::Xml xml(tempofile);
+                              MusECore::TempoList temp_tempo;
+                              temp_tempo.addTempo(0, (int) ((1000000.0 * 60.0)/bpm));
+                              temp_tempo.write(0,xml);
+                              fclose(tempofile);
+                              printf("\ndetected %f BPM.\n", bpm);
+                        }
+                        else
+                        {
+                              printf("\nERROR: could not write %s.tempo :(\n", name.toLatin1().constData());
+                        }
+                        
                   }
-                  
             }
+           
+            MusECore::AudioStream* temp_stream = new MusECore::AudioStream(name, MusEGlobal::sampleRate, MusECore::AudioStream::DO_STRETCHING, NULL);
+            lenXTick = temp_stream->getLen();
+            delete temp_stream;
       }
-
 
 
 
@@ -1301,16 +1310,25 @@ bool MusE::importWaveToTrack(QString& name, unsigned tick, MusECore::Track* trac
           part->setTick(tick);
       else
           part->setTick(MusEGlobal::song->cpos());
-      part->setLenFrame(samples);
+      
+      if (doStretch)
+            part->setLenTick(lenXTick);
+      else
+            part->setLenFrame(samples);
 
       MusECore::Event event(MusECore::Wave);
       event.setParentalPart(part);
       event.setPosType(part->poslen().type());
       event.setLenType(part->poslen().type());
       
+      event.setFrame(0);
       event.setAudioFile(name);
       event.setSpos(0);
-      event.setLenFrame(samples);
+      if (doStretch)
+            event.setLenTick(lenXTick);
+      else
+            event.setLenFrame(samples);
+
       part->addEvent(event);
 
       part->setName(QFileInfo(name).completeBaseName());
