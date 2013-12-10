@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include "xml.h"
 #include "waveevent.h"
+#include "assert.h"
 
 using namespace std;
 
@@ -86,45 +87,48 @@ AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t str
 	}
 	fileTempoMap.setSampRate(input_sampling_rate);
 
-	if (!doStretch)
+	if (!isPretend())
 	{
-#ifdef RUBBERBAND_SUPPORT
-		stretcher=NULL; // not needed
-#endif
-		
-		float src_ratio = (double)output_sampling_rate/input_sampling_rate;
-		int error;
-		srcState = src_new(SRC_SINC_MEDIUM_QUALITY, n_input_channels, &error); // TODO configure this
-		if (!srcState) // panic!
+		if (!doStretch)
 		{
-			printf("error creating new sample rate converter\n");
-			initalisation_failed = true;
-			return;
+	#ifdef RUBBERBAND_SUPPORT
+			stretcher=NULL; // not needed
+	#endif
+			
+			float src_ratio = (double)output_sampling_rate/input_sampling_rate;
+			int error;
+			srcState = src_new(SRC_SINC_MEDIUM_QUALITY, n_input_channels, &error); // TODO configure this
+			if (!srcState) // panic!
+			{
+				printf("error creating new sample rate converter\n");
+				initalisation_failed = true;
+				return;
+			}
+			
+			if (src_set_ratio(srcState, src_ratio))
+			{
+				printf("error setting sampling rate ratio\n");
+				initalisation_failed = true;
+				return;
+			}
 		}
-		
-		if (src_set_ratio(srcState, src_ratio))
+		else
 		{
-			printf("error setting sampling rate ratio\n");
-			initalisation_failed = true;
-			return;
+	#ifdef RUBBERBAND_SUPPORT
+			srcState = NULL; // not needed
+			rubberband_discard_frames = 0;
+			
+			stretcher = new RubberBandStretcher(sampling_rate, n_input_channels, 
+						RubberBandStretcher::DefaultOptions | RubberBandStretcher::OptionProcessRealTime, // TODO configure this
+						1.0, 1.0); // these values will be overridden anyway soon.
+			
+			set_pitch_ratio(1.0); // this might call stretcher.setPitch() with something
+			set_stretch_ratio(1.0); // different from 1.0, in order to do sampling rate conversion.
+	#endif
 		}
-	}
-	else
-	{
-#ifdef RUBBERBAND_SUPPORT
-		srcState = NULL; // not needed
-		rubberband_discard_frames = 0;
-		
-		stretcher = new RubberBandStretcher(sampling_rate, n_input_channels, 
-					RubberBandStretcher::DefaultOptions | RubberBandStretcher::OptionProcessRealTime, // TODO configure this
-					1.0, 1.0); // these values will be overridden anyway soon.
-		
-		set_pitch_ratio(1.0); // this might call stretcher.setPitch() with something
-		set_stretch_ratio(1.0); // different from 1.0, in order to do sampling rate conversion.
-#endif
-	}
 
-	seek(0, XTick(0,0.0));
+		seek(0, XTick(0,0.0));
+	}
 }
 
 AudioStream::~AudioStream()
@@ -140,6 +144,8 @@ AudioStream::~AudioStream()
 
 void AudioStream::seek(audioframe_t frame, XTick xtick)
 {
+	assert(!isPretend());
+	
 	audioframe_t destFrame; // which frame in the input file to seek to.
 	
 	if (doStretch) // we're only interested in the xtick
@@ -190,6 +196,8 @@ void AudioStream::set_pitch_ratio(double ratio)
 
 unsigned int AudioStream::readAudio(float** deinterleaved_dest_buffer, int n_output_channels, int nFrames, bool overwrite)
 {
+	assert(!isPretend());
+	
 	// convention: _buffers[] are interleaved, and deinterleaved_..._buffers[][] are deinterleaved
 	
 	/* there are two fundamentally different approaches: when time stretching using the rubberband library
@@ -354,12 +362,16 @@ void AudioStream::update_stretch_ratio()
 // converts the given frame-position of the output stream into the given XTick of the input stream
 XTick AudioStream::relFrame2XTick(unsigned frame) const
 {
+	assert(!isPretend());
+	
 	return MusEGlobal::tempomap.frame2xtick(frame + parental_event->absFrame()) - parental_event->absXTick();
 	//return externalTempoMap.frame2xtick(frame);
 }
 
 unsigned AudioStream::relTick2Frame(XTick xtick) const
 {
+	assert(!isPretend());
+	
 	unsigned retval = MusEGlobal::tempomap.tick2frame(xtick + parental_event->absXTick());
 	if (retval >= parental_event->absFrame()) return retval - parental_event->absFrame();
 	else
@@ -371,14 +383,26 @@ unsigned AudioStream::relTick2Frame(XTick xtick) const
 	//return externalTempoMap.tick2frame(xtick);
 }
 
+XTick AudioStream::relFrameInFile2XTick(unsigned frame) const
+{
+	return fileTempoMap.frame2xtick(frame);
+}
+
 unsigned AudioStream::relTick2FrameInFile(XTick xtick) const
 {
 	return fileTempoMap.tick2frame(xtick);
 }
 
 
+XTick AudioStream::getLen() const
+{
+	return relFrameInFile2XTick(sndfile->samples());
+}
+
 void AudioStream::readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bool overwrite) const
 {
+	assert(!isPretend());
+	
 	if (getStretchMode() != NO_STRETCHING)
 	{
 		audioframe_t pos_in_file = relTick2FrameInFile(relFrame2XTick(pos));

@@ -48,8 +48,10 @@ namespace MusECore {
 			};
 			
 
-			/* After constructing a new AudioStream, you MUST check isGood(). If not yourStream.isGood(), then the
-			   object is in an undefined state and will not work. Delete it, then. */
+			/** After constructing a new AudioStream, you MUST check isGood(). If not yourStream.isGood(), then the
+			    object is in an undefined state and will not work. Delete it, then.
+			   
+			   If parent_ev is NULL, then the stream object can only provide metadata but not audio!*/
 			AudioStream(QString filename, int sampling_rate, stretch_mode_t stretch_mode, // the sampling rate cannot be changed after creation.
 			            const WaveEventBase* parent_ev);
 			~AudioStream();
@@ -63,9 +65,12 @@ namespace MusECore {
 			XTick relFrameInFile2XTick(unsigned frame) const;
 			unsigned relTick2Frame(XTick xtick) const;        // those are relative to the AudioStream's beginning.
 			unsigned relTick2FrameInFile(XTick xtick) const;
+			
+			XTick getLen() const;
 
 			int get_n_input_channels() const { return n_input_channels; }
 			bool isGood() const { return !initalisation_failed; }
+			bool isPretend() const { return parental_event==NULL; }
 			
 			stretch_mode_t getStretchMode() const { return doStretch ? DO_STRETCHING : NO_STRETCHING; }
 			
