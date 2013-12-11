@@ -43,7 +43,7 @@ AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t str
 {
 	initalisation_failed = false; // not yet
 
-	sndfile = new MusECore::SndFile(filename); // TODO FINDMICH FIXME delete sndfile where appropriate!
+	sndfile = new MusECore::SndFile(filename);
 	if (sndfile->openRead())
 	{
 		printf("ERROR: AudioStream could not open file '%s'!\n", filename.toAscii().data());
@@ -136,6 +136,9 @@ AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t str
 
 AudioStream::~AudioStream()
 {
+	if (sndfile)
+		delete sndfile;
+	
 	if (srcState)
 		src_delete(srcState);
 	
@@ -259,8 +262,6 @@ unsigned int AudioStream::readAudio(float** deinterleaved_dest_buffer, int n_out
 				if (nFrames-n_already_read < n_frames_to_retrieve)
 					n_frames_to_retrieve = nFrames-n_already_read;
 
-				//DELETETHIS FIXME FINDMICH TODO printf("DEBUG: before retrieving frames from rubberband: available=%i, already read=%i, needed=%i\n", stretcher->available(), n_already_read, n_frames_to_retrieve);
-				
 				n_frames_retrieved = stretcher->retrieve(deinterleaved_result_buffer_temp, n_frames_to_retrieve);
 				for (int i=0;i<n_input_channels;i++)
 					deinterleaved_result_buffer_temp[i]+=n_frames_retrieved;
