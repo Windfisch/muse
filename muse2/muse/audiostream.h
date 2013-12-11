@@ -72,7 +72,7 @@ namespace MusECore {
 			bool isGood() const { return !initalisation_failed; }
 			bool isPretend() const { return parental_event==NULL; }
 			
-			stretch_mode_t getStretchMode() const { return doStretch ? DO_STRETCHING : NO_STRETCHING; }
+			stretch_mode_t getStretchMode() const { return stretch_mode; }
 			
 			void readPeakRms(SampleV* s, audioframe_t mag, audioframe_t pos, bool overwrite = true) const;
 			
@@ -80,10 +80,8 @@ namespace MusECore {
 			void maybe_update_stretch_ratio();
 			void update_stretch_ratio();
 
-#ifdef RUBBERBAND_SUPPORT			
 			void set_stretch_ratio(double ratio); // 2.0 makes it slower
 			void set_pitch_ratio(double ratio); // 2.0 shifts up an octave
-#endif
 			
 			
 			
@@ -91,17 +89,17 @@ namespace MusECore {
 			unsigned currentPositionInInput, currentPositionInOutput;
 			int input_sampling_rate, output_sampling_rate;
 			int n_input_channels;
-			bool doStretch;
+			stretch_mode_t stretch_mode;
 
 			SndFile* sndfile;
 			SRC_STATE* srcState; // sampling rate converter state
 #ifdef RUBBERBAND_SUPPORT
 			RubberBand::RubberBandStretcher* stretcher;
+			int rubberband_discard_frames;
+#endif
 			double currentStretchRate;
 			double effective_pitch_ratio;
 			double effective_stretch_ratio;
-			int rubberband_discard_frames;
-#endif
 			
 			const WaveEventBase* parental_event;
 			

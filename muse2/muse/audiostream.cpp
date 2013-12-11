@@ -33,17 +33,14 @@ using namespace std;
 
 #ifdef RUBBERBAND_SUPPORT
 	using namespace RubberBand;
-	#define RATIO_LIMIT 5
 #endif
+
+#define RATIO_LIMIT 5
 
 namespace MusECore {
 
-AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t stretch_mode, const WaveEventBase* parent_ev)
+AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t stretch_mode_, const WaveEventBase* parent_ev)
 {
-	printf("DEBUG: stretch_mode is %s\n", stretch_mode == NO_STRETCHING ? "no" : "yes" );
-	
-	if (stretch_mode==NAIVE_STRETCHING) printf("ERROR: NAIVE_STRETCHING is not implemented yet!\n"); // FIXME
-	
 	initalisation_failed = false; // not yet
 
 	sndfile = new MusECore::SndFile(filename); // TODO FINDMICH FIXME delete sndfile where appropriate!
@@ -55,12 +52,12 @@ AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t str
 	}
 
 	output_sampling_rate=sampling_rate;
-	doStretch = (stretch_mode == DO_STRETCHING) ? true : false;
+	stretch_mode = stretch_mode_;
 #ifndef RUBBERBAND_SUPPORT
 	if (stretch_mode==DO_STRETCHING) // stretching requested despite we have no support for this
 	{
 		printf("ERROR: AudioStream created with stretch_mode=DO_STRETCHING, but RUBBERBAND_SUPPORT not compiled in!\n");
-		stretch_mode=NO_STRETCHING;
+		stretch_mode=NAIVE_STRETCHING;
 	}
 #endif
 	
@@ -89,13 +86,12 @@ AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t str
 
 	if (!isPretend())
 	{
-		if (!doStretch)
+		if (stretch_mode!=DO_STRETCHING)
 		{
 	#ifdef RUBBERBAND_SUPPORT
 			stretcher=NULL; // not needed
 	#endif
 			
-			float src_ratio = (double)output_sampling_rate/input_sampling_rate;
 			int error;
 			srcState = src_new(SRC_SINC_MEDIUM_QUALITY, n_input_channels, &error); // TODO configure this
 			if (!srcState) // panic!
@@ -105,7 +101,7 @@ AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t str
 				return;
 			}
 			
-			if (src_set_ratio(srcState, src_ratio))
+			if (src_set_ratio(srcState, (double)output_sampling_rate/input_sampling_rate)) // overwritten anyway.
 			{
 				printf("error setting sampling rate ratio\n");
 				initalisation_failed = true;
@@ -121,13 +117,20 @@ AudioStream::AudioStream(QString filename, int sampling_rate, stretch_mode_t str
 			stretcher = new RubberBandStretcher(sampling_rate, n_input_channels, 
 						RubberBandStretcher::DefaultOptions | RubberBandStretcher::OptionProcessRealTime, // TODO configure this
 						1.0, 1.0); // these values will be overridden anyway soon.
-			
-			set_pitch_ratio(1.0); // this might call stretcher.setPitch() with something
-			set_stretch_ratio(1.0); // different from 1.0, in order to do sampling rate conversion.
 	#endif
 		}
 
+		set_pitch_ratio(1.0);   // this might call stretcher.setPitch() with something
+		set_stretch_ratio(1.0); // different from 1.0, in order to do sampling rate conversion.
+
 		seek(0, XTick(0,0.0));
+	}
+	else
+	{
+		srcState = NULL;
+		#ifdef RUBBERBAND_SUPPORT
+		stretcher=NULL; // not needed
+		#endif
 	}
 }
 
@@ -148,7 +151,7 @@ void AudioStream::seek(audioframe_t frame, XTick xtick)
 	
 	audioframe_t destFrame; // which frame in the input file to seek to.
 	
-	if (doStretch) // we're only interested in the xtick
+	if (stretch_mode!=NO_STRETCHING) // we're only interested in the xtick
 		destFrame = relTick2FrameInFile(xtick);
 	else // we're only interested in the frame
 		destFrame = frame*input_sampling_rate/output_sampling_rate;
@@ -160,7 +163,7 @@ void AudioStream::seek(audioframe_t frame, XTick xtick)
 	
 	update_stretch_ratio();
 #ifdef RUBBERBAND_SUPPORT
-	if (doStretch)
+	if (stretch_mode==DO_STRETCHING)
 	{
 		// need to flush the stretcher.
 		stretcher->reset();
@@ -170,29 +173,35 @@ void AudioStream::seek(audioframe_t frame, XTick xtick)
 	
 }
 
-#ifdef RUBBERBAND_SUPPORT
 void AudioStream::set_stretch_ratio(double ratio)
 {
 	if (ratio > RATIO_LIMIT)
 	{
-		printf("AudioStream::set_stretch_ratio: limiting upwards!\n");
+		printf("AudioStream::set_stretch_ratio: limiting upwards! (requested %f)\n",ratio);
 		ratio=RATIO_LIMIT;
 	}
 	if (ratio < 1.0/RATIO_LIMIT)
 	{
-		printf("AudioStream::set_stretch_ratio: limiting downwards!\n");
+		printf("AudioStream::set_stretch_ratio: limiting downwards! (requested %f)\n",ratio);
 		ratio=1.0/RATIO_LIMIT;
 	}
 	effective_stretch_ratio = ratio * output_sampling_rate / input_sampling_rate;
-	stretcher->setTimeRatio(effective_stretch_ratio);
+	
+#ifdef RUBBERBAND_SUPPORT
+	if (stretch_mode == DO_STRETCHING)
+		stretcher->setTimeRatio(effective_stretch_ratio);
+#endif
 }
 
 void AudioStream::set_pitch_ratio(double ratio)
 {
 	effective_pitch_ratio = ratio * input_sampling_rate / output_sampling_rate;
-	stretcher->setPitchScale(effective_pitch_ratio);
-}
+
+#ifdef RUBBERBAND_SUPPORT
+	if (stretch_mode == DO_STRETCHING)
+		stretcher->setPitchScale(effective_pitch_ratio);
 #endif
+}
 
 unsigned int AudioStream::readAudio(float** deinterleaved_dest_buffer, int n_output_channels, int nFrames, bool overwrite)
 {
@@ -209,7 +218,7 @@ unsigned int AudioStream::readAudio(float** deinterleaved_dest_buffer, int n_out
 	 * if no time stretching is wished, then we use libsamplerate for sample rate converting.
 	 */
 	
-	if (doStretch)
+	if (stretch_mode==DO_STRETCHING)
 	{
 #ifdef RUBBERBAND_SUPPORT
 		float* deinterleaved_result_buffer[n_input_channels]; // will point always to frame0
@@ -277,10 +286,15 @@ unsigned int AudioStream::readAudio(float** deinterleaved_dest_buffer, int n_out
 #endif
 		
 	}
-	else
+	else // NAIVE_STRETCHING or NO_STRETCHING
 	{
 		int src_retval;
-		int n_frames_to_read = nFrames * input_sampling_rate / output_sampling_rate;
+		int n_frames_to_read;
+		if (stretch_mode==NO_STRETCHING)
+			n_frames_to_read = nFrames * input_sampling_rate / output_sampling_rate;
+		else
+			n_frames_to_read = nFrames / effective_stretch_ratio;
+		
 		float sndfile_buffer[n_frames_to_read*n_input_channels];
 		float result_buffer[nFrames*n_input_channels];
 		
@@ -290,7 +304,11 @@ unsigned int AudioStream::readAudio(float** deinterleaved_dest_buffer, int n_out
 		SRC_DATA src_data;
 		src_data.input_frames=n_frames_to_read;
 		src_data.output_frames=nFrames;
-		src_data.src_ratio = (double)output_sampling_rate/input_sampling_rate;
+		if (stretch_mode==NO_STRETCHING)
+			src_data.src_ratio = (double)output_sampling_rate/input_sampling_rate;
+		else
+			src_data.src_ratio = effective_stretch_ratio;
+		
 		src_data.data_in = sndfile_buffer;
 		src_data.data_out = result_buffer;
 		src_data.end_of_input = 0; // TODO set this correctly, also below.
@@ -342,8 +360,7 @@ void AudioStream::maybe_update_stretch_ratio()
 }
 void AudioStream::update_stretch_ratio()
 {
-#ifdef RUBBERBAND_SUPPORT
-	if (doStretch)
+	if (stretch_mode!=NO_STRETCHING)
 	{
 		XTick keyframe_xtick = relFrame2XTick(currentPositionInOutput) + XTick(386);
 		
@@ -356,7 +373,6 @@ void AudioStream::update_stretch_ratio()
 		double stretch_ratio = (double)(keyframe_pos_in_stream-currentPositionInOutput)/(keyframe_pos_in_file-currentPositionInInput);
 		set_stretch_ratio(stretch_ratio);
 	}
-#endif
 }
 
 // converts the given frame-position of the output stream into the given XTick of the input stream
