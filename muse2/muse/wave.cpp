@@ -113,7 +113,7 @@ void deinterleave_and_adjust_channels(int src_channels, int dest_channels, float
                     *(dest[ch]+i) += *src++;
             }
     }
-    else if ((src_channels == 1) && (dest_channels == 2)) {
+    else if ((src_channels == 2) && (dest_channels == 1)) {
         // stereo to mono
         if(overwrite)
             for (size_t i = 0; i < n_frames; ++i)
@@ -122,7 +122,7 @@ void deinterleave_and_adjust_channels(int src_channels, int dest_channels, float
             for (size_t i = 0; i < n_frames; ++i)
                 *(dest[0] + i) += src[i + i] + src[i + i + 1];
     }
-    else if ((src_channels == 2) && (dest_channels == 1)) {
+    else if ((src_channels == 1) && (dest_channels == 2)) {
         // mono to stereo
         if(overwrite)
             for (size_t i = 0; i < n_frames; ++i) {
