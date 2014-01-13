@@ -946,6 +946,9 @@ void Song::revertOperationGroup1(Undo& operations)
                   case UndoOp::DeleteEvent:
                         i->nEvent.arm();
                         break;
+                  case UndoOp::ModifyEvent:
+                        i->oEvent.arm();
+                        break;
                         
                   case UndoOp::DeletePart:
                         for (iEvent it = editable_part->nonconst_events().begin(); it != editable_part->nonconst_events().end(); it++)
@@ -1043,6 +1046,9 @@ void Song::revertOperationGroup3(Undo& operations)
                   case UndoOp::AddEvent:
                         i->nEvent.disarm();
                         break;
+                  case UndoOp::ModifyEvent:
+                        i->nEvent.disarm();
+                        break;
                   case UndoOp::AddPart:
                         for (iEvent it = editable_part->nonconst_events().begin(); it != editable_part->nonconst_events().end(); it++)
                               it->second.disarm();
@@ -1096,6 +1102,9 @@ void Song::executeOperationGroup1(Undo& operations)
                         break;
                         
                   case UndoOp::AddEvent:
+                        i->nEvent.arm();
+                        break;
+                  case UndoOp::ModifyEvent:
                         i->nEvent.arm();
                         break;
                   case UndoOp::AddPart:
@@ -1188,6 +1197,9 @@ void Song::executeOperationGroup3(Undo& operations)
             switch(i->type) {
                   case UndoOp::DeleteEvent:
                         i->nEvent.disarm();
+                        break;
+                  case UndoOp::ModifyEvent:
+                        i->oEvent.disarm();
                         break;
                   case UndoOp::DeletePart:
                         for (iEvent it = editable_part->nonconst_events().begin(); it != editable_part->nonconst_events().end(); it++)
