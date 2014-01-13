@@ -108,6 +108,7 @@ class Event { // TODO FINDMICH remove this layer around *EventBase!
       void setAudioFile(const QString& path);
       void reloadAudioFile();
       AudioStream::stretch_mode_t stretchMode() const;
+      void setStretchMode(AudioStream::stretch_mode_t);
       const AudioStream* getAudioStream() const;
       
       void setPosType(Pos::TType t);

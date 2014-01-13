@@ -51,7 +51,7 @@ class WaveEventBase : public EventBase {
       bool armed;
       AudioStream* audiostream;
       audioframe_t streamPosition;
-      AudioStream::stretch_mode_t stretch_mode;
+      AudioStream::stretch_mode_t stretch_mode, stretch_mode_when_stretching;
       
       int _spos;            // start sample position in WaveFile
       bool deleted;
@@ -87,7 +87,8 @@ class WaveEventBase : public EventBase {
       virtual void reloadAudioFile();
       virtual void setAudioFile(const QString& path);
       virtual QString audioFilePath()               { return filename; }
-      virtual AudioStream::stretch_mode_t stretchMode() { return stretch_mode; }
+      virtual AudioStream::stretch_mode_t stretchMode() { return stretch_mode; } // always returns NOSTRETCH when LenType == TICKS
+      virtual void setStretchMode(AudioStream::stretch_mode_t); // undefined behaviour when LenType == TICKS!
       virtual const AudioStream* getAudioStream()   { return audiostream; }
 
       virtual void readAudio(WavePart* part, audioframe_t firstFrame, 

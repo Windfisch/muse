@@ -154,6 +154,7 @@ void Event::setAudioFile(const QString& path) { ev->setAudioFile(path); }
 void Event::reloadAudioFile()                 { ev->reloadAudioFile(); }
 QString Event::audioFilePath() const             { return ev->audioFilePath(); }
 AudioStream::stretch_mode_t Event::stretchMode() const { return ev->stretchMode(); }
+void Event::setStretchMode(AudioStream::stretch_mode_t m) { ev->setStretchMode(m); }
 const AudioStream* Event::getAudioStream() const { return ev->getAudioStream(); }
 void Event::readAudio(MusECore::WavePart* part, unsigned int offset, float** bpp, int channels, int nn, MusECore::XTick fromXTick, MusECore::XTick toXTick, bool doSeek, bool overwrite)
       {

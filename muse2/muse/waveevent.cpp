@@ -44,6 +44,7 @@ WaveEventBase::WaveEventBase(EventType t)
       {
       deleted = false;
       stretch_mode = (_posType==Pos::TICKS && _lenType==Pos::TICKS) ? AudioStream::DO_STRETCHING : AudioStream::NO_STRETCHING;
+      stretch_mode_when_stretching = AudioStream::DO_STRETCHING;
       audiostream=NULL;
       _spos = 0;
       }
@@ -53,6 +54,7 @@ WaveEventBase::WaveEventBase(const WaveEventBase& src) : EventBase(src)
 {
 	this->_name = src._name;
 	this->stretch_mode = src.stretch_mode;
+	this->stretch_mode_when_stretching = src.stretch_mode_when_stretching;
 	this->_spos = src._spos;
 	this->deleted = src.deleted;
 	audiostream=NULL;
@@ -117,6 +119,16 @@ void WaveEventBase::dump(int n) const
       EventBase::dump(n);
       }
 
+void WaveEventBase::setStretchMode(AudioStream::stretch_mode_t sm)
+{
+	stretch_mode_when_stretching = sm;
+	if (_lenType != Pos::FRAMES && _posType != Pos::FRAMES)
+	{
+		stretch_mode = sm;
+		reloadAudioFile();
+	}
+}
+      
 void WaveEventBase::setPosType(Pos::TType type)
 {
 	EventBase::setPosType(type);
@@ -130,8 +142,8 @@ void WaveEventBase::setLenType(Pos::TType type)
 {
 	if (type == Pos::FRAMES || _posType == Pos::FRAMES)
 		stretch_mode = AudioStream::NO_STRETCHING;
-	else if (type == Pos::TICKS && stretch_mode == AudioStream::NO_STRETCHING)
-		stretch_mode = AudioStream::DO_STRETCHING;
+	else if (type == Pos::TICKS)
+		stretch_mode = stretch_mode_when_stretching;
 	
 	EventBase::setLenType(type);
 	reloadAudioFile();
@@ -223,6 +235,8 @@ void WaveEventBase::read(Xml& xml)
 					_spos = xml.parseInt();
 				else if (tag == "stretch_mode")
 					stretch_mode = (AudioStream::stretch_mode_t) xml.parseInt();
+				else if (tag == "stretch_mode_when_stretching")
+					stretch_mode_when_stretching = (AudioStream::stretch_mode_t) xml.parseInt();
 				else if (tag == "file")
 					setAudioFile(filename);
 				else
@@ -280,6 +294,7 @@ void WaveEventBase::write(int level, Xml& xml, const Pos& offset, bool forcePath
             xml.strTag(level, "file", filename);
       
       xml.intTag(level, "stretch_mode", stretch_mode);
+      xml.intTag(level, "stretch_mode_when_stretching", stretch_mode_when_stretching);
       xml.etag(level, "event");
       }
 
