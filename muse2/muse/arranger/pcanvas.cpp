@@ -733,7 +733,7 @@ QMenu* PartCanvas::genItemPopup(CItem* item)
       // part color selection
       for (int i = 0; i < NUM_PARTCOLORS; ++i) {
             QAction *act_color = colorPopup->addAction(MusECore::colorRect(MusEGlobal::config.partColors[i], 80, 80), MusEGlobal::config.partColorNames[i]);
-            act_color->setData(20+i);
+            act_color->setData(50+i);
             }
 
       QAction *act_delete = partPopup->addAction(QIcon(*deleteIcon), tr("delete")); // ddskrjo added QIcon to all
@@ -773,6 +773,15 @@ QMenu* PartCanvas::genItemPopup(CItem* item)
                   act_wexport->setData(16);
                   QAction *act_wfinfo = partPopup->addAction(tr("file info"));
                   act_wfinfo->setData(17);
+                  QAction* act_nonnaivestretch = partPopup->addAction(tr("preserve pitch when stretching"));
+                  bool check=true;
+                  for (MusECore::ciEvent it = npart->part()->events().begin(); it!= npart->part()->events().end(); it++)
+                      if (it->second.stretchMode() == MusECore::AudioStream::NAIVE_STRETCHING)
+                          check=false;
+                  if (check) act_nonnaivestretch->setData(19);
+                  else act_nonnaivestretch->setData(20);
+                  act_nonnaivestretch->setCheckable(true);
+                  act_nonnaivestretch->setChecked(check);
                   }
                   break;
             case MusECore::Track::AUDIO_OUTPUT:
@@ -894,7 +903,7 @@ void PartCanvas::itemPopup(CItem* item, int n, const QPoint& pt)
                       {
                           case AudioStream::NO_STRETCHING: str.append("(not stretching)"); break;
                           case AudioStream::DO_STRETCHING: str.append("(time-stretching)"); break;
-                          case AudioStream::NAIVE_STRETCHING: str.append("naive time-stretching)"); break;
+                          case AudioStream::NAIVE_STRETCHING: str.append("(naive time-stretching)"); break;
                       }
                     }
                     QMessageBox::information(this, "File info", str, "Ok", 0);
@@ -920,9 +929,37 @@ void PartCanvas::itemPopup(CItem* item, int n, const QPoint& pt)
                     
                     break;
                   }
-            case 20 ... NUM_PARTCOLORS+20:
+            case 19: // Wave Parts: do NOT preserve pitch when stretching
+            {
+                  printf("DEBUG: Wave Parts: do NOT preserve pitch when stretching\n");
+                  Undo operations;
+                  for (MusECore::ciEvent it = item->part()->events().begin(); it!= item->part()->events().end(); it++)
                   {
-                    curColorIndex = n - 20;
+                      MusECore::Event ev2 = it->second.clone();
+                      ev2.setStretchMode(MusECore::AudioStream::NAIVE_STRETCHING);
+                      operations.push_back(UndoOp(UndoOp::ModifyEvent, ev2, it->second, item->part(), false, false));
+                  }
+                  printf("DEBUG: %i\n", operations.size());
+                  MusEGlobal::song->applyOperationGroup(operations);
+                break;
+            }
+            case 20: // Wave Parts: DO preserve pitch when stretching
+            {
+                  printf("DEBUG: Wave Parts: DO preserve pitch when stretching\n");
+                  Undo operations;
+                  for (MusECore::ciEvent it = item->part()->events().begin(); it!= item->part()->events().end(); it++)
+                  {
+                      MusECore::Event ev2 = it->second.clone();
+                      ev2.setStretchMode(MusECore::AudioStream::DO_STRETCHING);
+                      operations.push_back(UndoOp(UndoOp::ModifyEvent, ev2, it->second, item->part(), false, false));
+                  }
+                  printf("DEBUG: %i\n", operations.size());
+                  MusEGlobal::song->applyOperationGroup(operations);
+                break;
+            }
+            case 50 ... NUM_PARTCOLORS+50:
+                  {
+                    curColorIndex = n - 50;
                     bool selfound = false;
                     //Loop through all parts and set color on selected:
                     for (iCItem i = items.begin(); i != items.end(); i++) {
